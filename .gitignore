@@ -1,0 +1,13 @@
+# Build artifacts
+pulumi-sandbox.tar
+*.tar
+
+# APM materializes these when you `apm install` locally for testing; the kit
+# provisions them inside the sandbox, so they don't belong in git here.
+apm_modules/
+.agents/
+.codex/
+
+# OS / editor cruft
+.DS_Store
+*.swp

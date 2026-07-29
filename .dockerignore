@@ -1,0 +1,3 @@
+# The template Dockerfile only needs scripts/. Keep the build context tiny.
+*
+!scripts
