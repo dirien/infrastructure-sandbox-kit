@@ -45,12 +45,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute image ref
-        id: ref
+      - name: Compute image tags
+        id: tags
         run: |
           owner="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
-          tag="${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}"
-          echo "image=ghcr.io/${owner}/infrastructure-sandbox:${tag}" >> "$GITHUB_OUTPUT"
+          img="ghcr.io/${owner}/infrastructure-sandbox"
+          {
+            echo 'tags<<EOF'
+            # On a version tag push, stamp both :vX.Y.Z and :latest. Otherwise :latest only.
+            if [ "${{ github.ref_type }}" = "tag" ]; then
+              echo "${img}:${{ github.ref_name }}"
+            fi
+            echo "${img}:latest"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -60,5 +68,5 @@ jobs:
           platforms: ${{ inputs.platforms || 'linux/amd64' }}
           build-args: |
             ISK_INSTALL_CLOUDS=${{ inputs.install_clouds || '1' }}
-          tags: ${{ steps.ref.outputs.image }}
+          tags: ${{ steps.tags.outputs.tags }}
           push: true
