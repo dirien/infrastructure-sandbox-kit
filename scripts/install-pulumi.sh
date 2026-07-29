@@ -11,10 +11,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-PULUMI_VERSION="${PSK_PULUMI_VERSION:-3.255.0}"
-ESC_VERSION="${PSK_ESC_VERSION:-0.26.0}"
+PULUMI_VERSION="${ISK_PULUMI_VERSION:-3.255.0}"
+ESC_VERSION="${ISK_ESC_VERSION:-0.26.0}"
 PREFIX="/opt/pulumi"
-ARCH="$(psk_arch)"
+ARCH="$(rel_arch)"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT

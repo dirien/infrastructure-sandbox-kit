@@ -1,17 +1,18 @@
 schemaVersion: "2"
 kind: mixin
-name: pulumi
-displayName: Pulumi for Claude Code
+name: infrastructure
+displayName: Infrastructure (IaC) for Claude Code
 description: >-
-  Turns a Claude Code sandbox into a Pulumi workstation: Pulumi CLI + ESC and the
-  language servers for Go/Node/Python (optionally .NET), the Pulumi Cloud token
-  wired through the credential proxy, the Pulumi MCP server, and
+  Turns a Claude Code sandbox into an Infrastructure-as-Code workstation: Pulumi
+  CLI + ESC, Terraform, OpenTofu, and the AWS / Azure / Google Cloud CLIs, plus
+  Go/Node/Python (optionally .NET) language servers, the Pulumi Cloud token wired
+  through the credential proxy, the Pulumi MCP server, and
   dirien/my-claude-apm-setup materialized into the agent home (skills, subagents,
   guardrail hooks, MCP). Layer it onto the built-in `claude` agent, or onto the
   prebuilt template image where the same tools are baked in and this becomes a
   fast no-op.
-version: "0.1.0"
-sourceURL: https://github.com/dirien/pulumi-sandbox-kit
+version: "0.2.0"
+sourceURL: https://github.com/dirien/infrastructure-sandbox-kit
 licenses:
   - MIT
 
@@ -27,14 +28,24 @@ permissions:
       - api.pulumi.com
       - get.pulumi.com
       - mcp.ai.pulumi.com
-      # --- GitHub: Pulumi/ESC binaries, provider plugins, `gh`, APM skill repos ---
+      # --- Terraform + OpenTofu: CLI downloads + provider registries ---
+      - releases.hashicorp.com
+      - registry.terraform.io
+      - registry.opentofu.org
+      - get.opentofu.org
+      # --- Cloud CLIs: installer downloads + GPG-signed apt repos ---
+      - awscli.amazonaws.com
+      - packages.microsoft.com
+      - packages.cloud.google.com
+      - dl.google.com
+      # --- GitHub: Pulumi/ESC/OpenTofu binaries, provider plugins, `gh`, APM repos ---
       - github.com
       - api.github.com
       - codeload.github.com
       - raw.githubusercontent.com
       - objects.githubusercontent.com
       - release-assets.githubusercontent.com
-      # --- Language package registries (your Pulumi program + provisioning) ---
+      # --- Language package registries (your IaC program + provisioning) ---
       - registry.npmjs.org
       - pypi.org
       - files.pythonhosted.org
@@ -45,20 +56,26 @@ permissions:
       - aka.ms
       - context7.com
       - "*.context7.com"
-      # --- Optional .NET (uncomment together with PSK_INSTALL_DOTNET=1 below) ---
+      # --- Cloud control-plane starters (extend per provider/region — docs/network.md).
+      #     Only exact hosts and single-label `*.host` wildcards are enforced today. ---
+      - sts.amazonaws.com
+      - management.azure.com
+      - login.microsoftonline.com
+      - graph.microsoft.com
+      - accounts.google.com
+      - oauth2.googleapis.com
+      - "*.googleapis.com"
+      # --- Optional .NET (uncomment together with ISK_INSTALL_DOTNET=1 below) ---
       # - dot.net
       # - builds.dotnet.microsoft.com
       # - api.nuget.org
       # - "*.nuget.org"
-      # --- Your cloud providers go here. Endpoints must be listed explicitly
-      #     (only single-label `*.host` wildcards are enforced today) — see
-      #     docs/network.md for AWS / Azure / GCP / Civo / Scaleway starters. ---
 
 credentials:
   # Pulumi Cloud access token, injected by the proxy (sentinel-swap): the
   # container only ever sees PULUMI_ACCESS_TOKEN=proxy-managed, and the proxy
   # rewrites the `Authorization: token <PAT>` header on requests to api.pulumi.com.
-  # Bind the real value on the host — see docs/credentials.md.
+  # Cloud creds (AWS SigV4 etc.) are container-resident — see docs/credentials.md.
   - service: pulumi
     description: "Pulumi Cloud access token (pulumi login / state backend)"
     apiKey:
@@ -71,6 +88,8 @@ credentials:
 environment:
   variables:
     PULUMI_SKIP_UPDATE_CHECK: "true"
+    AWS_PAGER: ""
+    CLOUDSDK_CORE_DISABLE_PROMPTS: "1"
 
 setup:
   install:
@@ -79,22 +98,27 @@ setup:
     # the kit repo at a pinned ref. The provision step is a fast no-op when the
     # image already provisioned (guarded by a sentinel).
     - user: "1000"
-      description: "Install Pulumi + toolchains and wire dirien/my-claude-apm-setup into the agent home"
+      description: "Install IaC toolchain (Pulumi/Terraform/OpenTofu + AWS/Azure/gcloud) and wire dirien/my-claude-apm-setup into the agent home"
       command: |
         set -eu
         # --- pins (edit to taste) ---
-        export PSK_PULUMI_VERSION="3.255.0"
-        export PSK_ESC_VERSION="0.26.0"
-        export PSK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
-        export PSK_APM_SETUP_REF="v0.4.0"
-        export PSK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
-        KIT_REPO="dirien/pulumi-sandbox-kit"
+        export ISK_PULUMI_VERSION="3.255.0"
+        export ISK_ESC_VERSION="0.26.0"
+        export ISK_TERRAFORM_VERSION="1.15.8"
+        export ISK_OPENTOFU_VERSION="1.12.5"
+        export ISK_AWSCLI_VERSION="2.36.10"
+        export ISK_AZ_APT_DIST="noble"       # Microsoft azure-cli repo dist (no 'resolute'/26.04 yet)
+        export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
+        export ISK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
+        export ISK_APM_SETUP_REF="v0.4.0"
+        export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
+        KIT_REPO="dirien/infrastructure-sandbox-kit"
         KIT_REF="main"                       # pin to a tag or 40-char commit SHA for reproducibility
         # --- locate the provisioning scripts: baked image first, else fetch ---
-        DIR="$HOME/.local/share/pulumi-sandbox-kit/scripts"
+        DIR="$HOME/.local/share/infrastructure-sandbox-kit/scripts"
         if [ ! -f "$DIR/provision.sh" ]; then
           DIR="$(mktemp -d)"
-          for s in lib.sh install-pulumi.sh install-toolchains.sh setup-apm-home.sh provision.sh; do
+          for s in lib.sh install-pulumi.sh install-iac.sh install-clouds.sh install-toolchains.sh setup-apm-home.sh provision.sh; do
             curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --retry-delay 2 \
               -o "$DIR/$s" "https://raw.githubusercontent.com/$KIT_REPO/$KIT_REF/scripts/$s"
           done
@@ -103,28 +127,34 @@ setup:
 
 agentInstructions:
   content: |
-    # Pulumi workstation
+    # Infrastructure-as-Code workstation
 
-    This sandbox is set up for Pulumi infrastructure work.
+    This sandbox is set up for IaC work across Pulumi, Terraform and OpenTofu,
+    with the major cloud CLIs.
 
-    - `pulumi` and `esc` are on PATH. `PULUMI_ACCESS_TOKEN` is proxy-managed —
-      `pulumi login` against Pulumi Cloud and `pulumi`/`esc` API calls work
-      without a token ever being written into the container.
-    - Language runtimes: Go, Node.js and Python are ready (plus Java; .NET when
-      the kit was built/enabled with .NET). Language servers: gopls,
-      typescript-language-server, pyright (and csharp-ls with .NET).
-    - MCP: the **pulumi** server (registry lookups, resource-schema and code
-      validation, Pulumi Neo) and **context7** (up-to-date library docs) are
-      registered at user scope.
+    Tools on PATH:
+    - `pulumi` + `esc` — `PULUMI_ACCESS_TOKEN` is proxy-managed, so `pulumi login`
+      and Pulumi/ESC API calls work without a token ever entering the container.
+    - `terraform` and `tofu` (OpenTofu) — drop-in HCL engines.
+    - `aws`, `az`, `gcloud` — cloud CLIs (installed unless the kit was built/run
+      with ISK_INSTALL_CLOUDS=0).
+    - Language runtimes Go, Node.js, Python (plus Java; .NET when enabled) with
+      language servers gopls, typescript-language-server, pyright (+ csharp-ls).
+    - MCP: **pulumi** (registry lookups, resource-schema and code validation,
+      Pulumi Neo) and **context7** (up-to-date library docs), at user scope.
     - Skills, subagents and guardrail hooks from `dirien/my-claude-apm-setup` are
       active globally — a PreToolUse guard blocks destructive shell commands and a
       PostToolUse hook scans edits for secrets and formats them.
 
     Workflow tips:
-    - Prefer `pulumi preview` before `pulumi up`. In non-interactive runs use
-      `--non-interactive` and explicit `--stack <name>`.
-    - New providers download plugins from GitHub/`get.pulumi.com` on first use; if
-      a plugin or a cloud endpoint is blocked, add its host to the kit's
-      `permissions.network.allow` (see docs/network.md) and recreate the sandbox.
-    - Never hardcode cloud or Pulumi credentials in code — the secret scanner will
-      block the write. Use Pulumi ESC / stack config / environment.
+    - Pulumi: `pulumi preview` before `pulumi up`; non-interactive runs want
+      `--non-interactive` and an explicit `--stack <name>`.
+    - Terraform/OpenTofu: `terraform init && terraform plan` (or `tofu ...`);
+      providers download from registry.terraform.io / registry.opentofu.org.
+    - Cloud auth is NOT baked in. `aws`/`az`/`gcloud` need credentials supplied at
+      run time (env vars) or via Pulumi ESC — see docs/credentials.md. AWS uses
+      SigV4 so its creds live in the container, bounded by the network allow-list.
+    - If a provider plugin or a cloud/region endpoint is blocked, add its host to
+      the kit's `permissions.network.allow` (see docs/network.md) and recreate.
+    - Never hardcode cloud or Pulumi credentials in code — the secret scanner
+      blocks the write. Use ESC / stack config / environment.

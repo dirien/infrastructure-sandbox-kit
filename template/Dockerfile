@@ -1,43 +1,56 @@
 # syntax=docker/dockerfile:1
 #
-# Pulumi sandbox template — Claude Code base image enriched for Pulumi work.
+# Infrastructure sandbox template — Claude Code base image enriched for IaC work.
 #
-# Bakes in the Pulumi CLI + ESC, language servers, golangci-lint (and optionally
-# the .NET SDK), and materializes dirien/my-claude-apm-setup into the agent's
-# ~/.claude so skills, subagents, guardrail hooks and MCP servers are present the
-# moment the sandbox starts — no per-start install cost.
+# Bakes in the Pulumi CLI + ESC, Terraform, OpenTofu, the AWS/Azure/gcloud CLIs,
+# language servers and golangci-lint (and optionally the .NET SDK), and
+# materializes dirien/my-claude-apm-setup into the agent's ~/.claude so skills,
+# subagents, guardrail hooks and MCP servers are present the moment the sandbox
+# starts — no per-start install cost.
 #
 # Build from the REPO ROOT so the shared scripts/ tree is in the build context:
-#   docker build -f template/Dockerfile -t pulumi-sandbox:latest .
+#   docker build -f template/Dockerfile -t infrastructure-sandbox:latest .
 # then load it into sbx (or push to a registry) — see template/README.md.
 
 ARG BASE=docker/sandbox-templates:claude-code-docker
 FROM ${BASE}
 
 # Pin everything; override with --build-arg as needed.
-ARG PSK_PULUMI_VERSION=3.255.0
-ARG PSK_ESC_VERSION=0.26.0
-ARG PSK_APM_SETUP_REPO=dirien/my-claude-apm-setup
-ARG PSK_APM_SETUP_REF=v0.4.0
-ARG PSK_INSTALL_DOTNET=0
-ARG PSK_DOTNET_CHANNEL=8.0
+ARG ISK_PULUMI_VERSION=3.255.0
+ARG ISK_ESC_VERSION=0.26.0
+ARG ISK_TERRAFORM_VERSION=1.15.8
+ARG ISK_OPENTOFU_VERSION=1.12.5
+ARG ISK_AWSCLI_VERSION=2.36.10
+ARG ISK_AZ_APT_DIST=noble
+ARG ISK_INSTALL_CLOUDS=1
+ARG ISK_APM_SETUP_REPO=dirien/my-claude-apm-setup
+ARG ISK_APM_SETUP_REF=v0.4.0
+ARG ISK_INSTALL_DOTNET=0
+ARG ISK_DOTNET_CHANNEL=8.0
 
 # The base runs as `agent` (uid 1000) with passwordless sudo. Provision as that
 # user so APM + Claude config land in /home/agent owned by agent.
 USER agent
 
-ENV PSK_PULUMI_VERSION=${PSK_PULUMI_VERSION} \
-    PSK_ESC_VERSION=${PSK_ESC_VERSION} \
-    PSK_APM_SETUP_REPO=${PSK_APM_SETUP_REPO} \
-    PSK_APM_SETUP_REF=${PSK_APM_SETUP_REF} \
-    PSK_INSTALL_DOTNET=${PSK_INSTALL_DOTNET} \
-    PSK_DOTNET_CHANNEL=${PSK_DOTNET_CHANNEL} \
-    PULUMI_SKIP_UPDATE_CHECK=true
+ENV ISK_PULUMI_VERSION=${ISK_PULUMI_VERSION} \
+    ISK_ESC_VERSION=${ISK_ESC_VERSION} \
+    ISK_TERRAFORM_VERSION=${ISK_TERRAFORM_VERSION} \
+    ISK_OPENTOFU_VERSION=${ISK_OPENTOFU_VERSION} \
+    ISK_AWSCLI_VERSION=${ISK_AWSCLI_VERSION} \
+    ISK_AZ_APT_DIST=${ISK_AZ_APT_DIST} \
+    ISK_INSTALL_CLOUDS=${ISK_INSTALL_CLOUDS} \
+    ISK_APM_SETUP_REPO=${ISK_APM_SETUP_REPO} \
+    ISK_APM_SETUP_REF=${ISK_APM_SETUP_REF} \
+    ISK_INSTALL_DOTNET=${ISK_INSTALL_DOTNET} \
+    ISK_DOTNET_CHANNEL=${ISK_DOTNET_CHANNEL} \
+    PULUMI_SKIP_UPDATE_CHECK=true \
+    AWS_PAGER="" \
+    CLOUDSDK_CORE_DISABLE_PROMPTS=1
 
 # Canonical provisioning scripts (single source of truth, shared with the mixin).
-COPY --chown=agent:agent scripts/ /home/agent/.local/share/pulumi-sandbox-kit/scripts/
+COPY --chown=agent:agent scripts/ /home/agent/.local/share/infrastructure-sandbox-kit/scripts/
 
-RUN bash /home/agent/.local/share/pulumi-sandbox-kit/scripts/provision.sh
+RUN bash /home/agent/.local/share/infrastructure-sandbox-kit/scripts/provision.sh
 
 # Make Go- and dotnet-tool-installed binaries resolvable in non-login shells too.
 # (/home/agent/.local/bin is already on the base PATH; this adds the dotnet tools dir.)

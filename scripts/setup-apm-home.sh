@@ -20,9 +20,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-APM_REPO="${PSK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
-APM_REF="${PSK_APM_SETUP_REF:-v0.4.0}"
-SETUP_DIR="${PSK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
+APM_REPO="${ISK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
+APM_REF="${ISK_APM_SETUP_REF:-v0.4.0}"
+SETUP_DIR="${ISK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
 CLAUDE_HOME="$HOME/.claude"
 
 # --- 1. APM CLI ------------------------------------------------------------
@@ -57,8 +57,8 @@ log "mirrored $(find "$CLAUDE_HOME/skills" -maxdepth 1 -mindepth 1 -type d | wc 
 
 # --- 5. Managed block in ~/.claude/CLAUDE.md importing the rules -----------
 CLAUDE_MD="$CLAUDE_HOME/CLAUDE.md"
-BEGIN="<!-- pulumi-sandbox-kit:begin -->"
-END="<!-- pulumi-sandbox-kit:end -->"
+BEGIN="<!-- infrastructure-sandbox-kit:begin -->"
+END="<!-- infrastructure-sandbox-kit:end -->"
 touch "$CLAUDE_MD"
 # strip any previous managed block, then append a fresh one
 tmp_md="$(mktemp)"
@@ -129,7 +129,7 @@ os.makedirs(os.path.dirname(dst_path), exist_ok=True)
 with open(dst_path, "w") as f:
     json.dump(dst, f, indent=2)
     f.write("\n")
-print(f"[pulumi-sandbox-kit] wired guardrail hooks -> {dst_path}")
+print(f"[infrastructure-sandbox-kit] wired guardrail hooks -> {dst_path}")
 PY
 fi
 

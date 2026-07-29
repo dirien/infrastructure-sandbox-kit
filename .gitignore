@@ -1,5 +1,5 @@
 # Build artifacts
-pulumi-sandbox.tar
+infrastructure-sandbox.tar
 *.tar
 
 # APM materializes these when you `apm install` locally for testing; the kit

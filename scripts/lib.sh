@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lib.sh — shared helpers for the pulumi-sandbox-kit provisioning scripts.
+# lib.sh — shared helpers for the infrastructure-sandbox-kit provisioning scripts.
 #
 # Sourced by install-pulumi.sh, install-toolchains.sh, setup-apm-home.sh and
 # provision.sh. Assumes it runs as the sandbox `agent` user (uid 1000) which has
@@ -12,11 +12,11 @@
 
 set -euo pipefail
 
-PSK_TAG="[pulumi-sandbox-kit]"
+ISK_TAG="[infrastructure-sandbox-kit]"
 
-log()  { printf '%s %s\n' "$PSK_TAG" "$*" >&2; }
-warn() { printf '%s WARN: %s\n' "$PSK_TAG" "$*" >&2; }
-die()  { printf '%s ERROR: %s\n' "$PSK_TAG" "$*" >&2; exit 1; }
+log()  { printf '%s %s\n' "$ISK_TAG" "$*" >&2; }
+warn() { printf '%s WARN: %s\n' "$ISK_TAG" "$*" >&2; }
+die()  { printf '%s ERROR: %s\n' "$ISK_TAG" "$*" >&2; exit 1; }
 
 # have <cmd> — true when the command is on PATH.
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -31,14 +31,30 @@ as_root() {
   fi
 }
 
-# psk_arch — the release-artifact arch token used by Pulumi and ESC: x64 | arm64.
-psk_arch() {
-  local a
-  a="$(dpkg --print-architecture 2>/dev/null || uname -m)"
-  case "$a" in
+# rel_arch — the Pulumi/ESC release-artifact arch token: x64 | arm64.
+rel_arch() {
+  case "$(dpkg --print-architecture 2>/dev/null || uname -m)" in
     amd64|x86_64) echo "x64" ;;
     arm64|aarch64) echo "arm64" ;;
-    *) die "unsupported architecture: $a (expected amd64/x86_64 or arm64/aarch64)" ;;
+    *) die "unsupported architecture (expected amd64/x86_64 or arm64/aarch64)" ;;
+  esac
+}
+
+# deb_arch — Debian-style arch token: amd64 | arm64 (Terraform/OpenTofu, apt).
+deb_arch() {
+  case "$(dpkg --print-architecture 2>/dev/null || uname -m)" in
+    amd64|x86_64) echo "amd64" ;;
+    arm64|aarch64) echo "arm64" ;;
+    *) die "unsupported architecture (expected amd64/x86_64 or arm64/aarch64)" ;;
+  esac
+}
+
+# aws_arch — AWS-style arch token: x86_64 | aarch64.
+aws_arch() {
+  case "$(dpkg --print-architecture 2>/dev/null || uname -m)" in
+    amd64|x86_64) echo "x86_64" ;;
+    arm64|aarch64) echo "aarch64" ;;
+    *) die "unsupported architecture (expected amd64/x86_64 or arm64/aarch64)" ;;
   esac
 }
 
@@ -52,6 +68,15 @@ verify_sha256() {
   local got
   got="$(sha256sum "$1" | awk '{print $1}')"
   [ "$got" = "$2" ] || die "checksum mismatch for $1: got $got, expected $2"
+}
+
+# verify_from_sums <file> <name-in-sums> <sums-file> — verify against a published
+# SHA256SUMS file (format: "<hash>  <filename>"). Aborts on miss or mismatch.
+verify_from_sums() {
+  local expected
+  expected="$(awk -v n="$2" '$2==n {print $1}' "$3" | head -1)"
+  [ -n "$expected" ] || die "no checksum entry for $2 in $3"
+  verify_sha256 "$1" "$expected"
 }
 
 # npm_g <pkg...> — install global npm packages, falling back to sudo when the

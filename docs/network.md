@@ -2,21 +2,24 @@
 
 Docker Sandboxes egress is default-deny: only hosts in the kit's
 `permissions.network.allow` (composed with the base agent's) are reachable. This
-kit ships the hosts its own provisioning and the core Pulumi flow need — **you
-add the hosts your clouds and provider plugins use.**
+kit ships the hosts its own provisioning and the core IaC flow need — **you add
+the extra cloud/region endpoints and provider plugins you use.**
 
 ## What the kit already allows
 
 | Group | Hosts | Why |
 |---|---|---|
 | Pulumi | `api.pulumi.com`, `get.pulumi.com`, `mcp.ai.pulumi.com` | state/API, plugin/CLI downloads, hosted MCP |
-| GitHub | `github.com`, `api.github.com`, `codeload.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` | Pulumi/ESC binaries, provider plugins, `gh`, APM skill repos |
-| Registries | `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org`, `proxy.golang.org`, `sum.golang.org`, `storage.googleapis.com` | your Pulumi program's deps + provisioning |
+| Terraform / OpenTofu | `releases.hashicorp.com`, `registry.terraform.io`, `registry.opentofu.org`, `get.opentofu.org` | CLI downloads + provider registries |
+| Cloud CLIs | `awscli.amazonaws.com`, `packages.microsoft.com`, `packages.cloud.google.com`, `dl.google.com` | AWS CLI zip + Azure/gcloud GPG-signed apt repos |
+| Cloud control-plane (starters) | `sts.amazonaws.com`, `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`, `accounts.google.com`, `oauth2.googleapis.com`, `*.googleapis.com` | basic identity/ARM/`gcloud auth` — **extend per provider/region** |
+| GitHub | `github.com`, `api.github.com`, `codeload.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` | Pulumi/ESC/OpenTofu binaries, provider plugins, `gh`, APM repos |
+| Registries | `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org`, `proxy.golang.org`, `sum.golang.org`, `storage.googleapis.com` | your IaC program's deps + provisioning |
 | APM / MCP | `aka.ms`, `context7.com`, `*.context7.com` | APM installer, Context7 MCP |
 
 `.NET` hosts (`dot.net`, `builds.dotnet.microsoft.com`, `api.nuget.org`,
 `*.nuget.org`) are present but commented out — uncomment them together with
-`PSK_INSTALL_DOTNET="1"`.
+`ISK_INSTALL_DOTNET="1"`.
 
 ## Wildcard semantics (important)
 
@@ -34,12 +37,15 @@ endpoints explicitly.**
 
 ## Cloud provider starters
 
-Add the entries for the clouds you actually target to
-`kit/spec.yaml` → `permissions.network.allow`, then recreate the sandbox.
+The basic identity/control-plane hosts above are already allowed, so
+`aws sts get-caller-identity`, `az login` and `gcloud auth` work out of the box.
+For real work you still need the **regional service** and **object-storage**
+endpoints your stacks call — add them to `kit/spec.yaml` →
+`permissions.network.allow` and recreate the sandbox.
 
 ```yaml
 # --- AWS (SigV4; also pass AWS_* creds — see docs/credentials.md) ---
-- sts.amazonaws.com
+- sts.amazonaws.com                   # (already included)
 - s3.amazonaws.com
 - s3.us-east-1.amazonaws.com          # add each region's S3 host explicitly
 - ec2.us-east-1.amazonaws.com         # and each regional service host you use
@@ -84,9 +90,14 @@ CDN will show up here too.
 
 ## Package-manager gotcha
 
-`apt-get update` / language package managers refresh **every** configured source,
-not just the one you asked for. The kit's provisioning avoids `apt`, but if you
-add an install step that uses it, remember the base `*-docker` image pre-adds
-`download.docker.com` to apt sources — allow it (and `archive.ubuntu.com`,
-`security.ubuntu.com`, `ports.ubuntu.com` for cross-arch) or `apt-get update`
-fails under deny-all.
+`apt-get update` normally refreshes **every** configured source, not just the one
+you asked for — so one unreachable source fails the whole update under deny-all.
+The kit's Azure/gcloud installs sidestep this by refreshing **only** their own
+list (`apt-get update -o Dir::Etc::sourcelist=… -o Dir::Etc::sourceparts=-`), so
+they need just `packages.microsoft.com` / `packages.cloud.google.com` — not the
+base Ubuntu/Docker sources.
+
+If you add your own `apt-get update` step, remember the base `*-docker` image
+pre-adds `download.docker.com` — allow it (and `archive.ubuntu.com`,
+`security.ubuntu.com`, `ports.ubuntu.com` for cross-arch) or it fails under
+deny-all.

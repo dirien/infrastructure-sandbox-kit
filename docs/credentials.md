@@ -56,8 +56,9 @@ sbx secret set -g anthropic "$ANTHROPIC_API_KEY"     # or use the interactive OA
 
 ## Cloud provider credentials
 
-The kit does **not** inject cloud credentials — which cloud(s) you target is
-per-project. Two good options:
+The `aws`, `az` and `gcloud` CLIs (and the Pulumi/Terraform/OpenTofu providers)
+are installed, but the kit does **not** inject cloud credentials — which cloud(s)
+you target is per-project. Two good options:
 
 ### Option A (recommended): Pulumi ESC
 
@@ -77,16 +78,25 @@ For direct credentials, note the delivery model differs by provider:
   your stack calls:
 
   ```bash
-  sbx run --template pulumi-sandbox:latest --kit ./kit \
+  sbx run --template infrastructure-sandbox:latest --kit ./kit \
     -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_REGION \
     claude .
   ```
 
   (Confirm the exact `-e`/`--env` flag with `sbx run --help` on your version.)
 
-- **Azure** (`ARM_*` / `AZURE_*`) and **GCP** (`GOOGLE_CREDENTIALS` /
-  `GOOGLE_APPLICATION_CREDENTIALS`) can likewise be passed as env vars, or
-  sourced from ESC. Add each provider's management/auth hosts to the allow-list.
+  The `aws` CLI then works from the env vars directly, or run `aws configure` /
+  `aws sso login` in-session.
+
+- **Azure** — pass `ARM_*` / `AZURE_*` env vars, or authenticate the `az` CLI
+  with a service principal:
+  `az login --service-principal -u "$AZURE_CLIENT_ID" -p "$AZURE_CLIENT_SECRET" --tenant "$AZURE_TENANT_ID"`.
+
+- **GCP** — pass `GOOGLE_CREDENTIALS` / `GOOGLE_APPLICATION_CREDENTIALS`, or point
+  `gcloud` at a service-account key:
+  `gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"`.
+  Either can be sourced from ESC. Add each provider's management/auth hosts to the
+  allow-list.
 
 - **Other providers** the way you use Pulumi (Civo, Scaleway, Exoscale,
   DigitalOcean, Vultr, Linode, Hetzner, OVH, …) take a single API-token env var

@@ -3,7 +3,7 @@
 #
 # The base image already ships Go, Node, Python (+uv) and Java. This adds the
 # language servers referenced by dirien/my-claude-apm-setup's .lsp.json plus
-# golangci-lint, and — opt-in via PSK_INSTALL_DOTNET=1 — the .NET SDK and
+# golangci-lint, and — opt-in via ISK_INSTALL_DOTNET=1 — the .NET SDK and
 # csharp-ls for Pulumi C#/.NET.
 #
 # Everything is idempotent (guarded by `have`). Go binaries install into
@@ -38,10 +38,10 @@ if ! have pyright; then
 fi
 
 # --- Optional: .NET SDK + csharp-ls for Pulumi C#/.NET ---------------------
-# Heavy (~700MB). Off by default; enable with PSK_INSTALL_DOTNET=1.
-if [ "${PSK_INSTALL_DOTNET:-0}" = "1" ]; then
+# Heavy (~700MB). Off by default; enable with ISK_INSTALL_DOTNET=1.
+if [ "${ISK_INSTALL_DOTNET:-0}" = "1" ]; then
   if ! have dotnet; then
-    channel="${PSK_DOTNET_CHANNEL:-8.0}"
+    channel="${ISK_DOTNET_CHANNEL:-8.0}"
     log "installing .NET SDK ${channel}"
     tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
     fetch "https://dot.net/v1/dotnet-install.sh" "$tmp/dotnet-install.sh"
