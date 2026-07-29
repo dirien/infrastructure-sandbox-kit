@@ -69,6 +69,12 @@ Pulumi MCP and the agent context.
 - A provisioning sentinel at `~/.local/state/infrastructure-sandbox-kit/provisioned`
   so the kit's create-time install is skipped on this image.
 
+Docker reseeds `~/.claude/settings.json` and `~/.claude.json` when it creates a
+sandbox, which would wipe the baked-in hooks and MCP config. The kit's
+`commands.startup` re-applies them on every start, so run the template together
+with the kit (the recommended combination) to keep the guardrail hooks and MCP
+servers active. The skills, subagents and rules survive the reseed on their own.
+
 Reference build: about 6.6 GB with the cloud CLIs, about 4.2 GB with
 `INSTALL_CLOUDS=0`.
 

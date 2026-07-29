@@ -1,7 +1,7 @@
 # Network allow-list
 
 Docker Sandboxes egress is default-deny: only hosts in the kit's
-`permissions.network.allow` (composed with the base agent's) are reachable. This
+`network.allowedDomains` (composed with the base agent's) are reachable. This
 kit ships the hosts that its own provisioning and the core IaC flow need. You add
 the extra cloud and region endpoints and provider plugins you use.
 
@@ -21,26 +21,34 @@ The `.NET` hosts (`dot.net`, `builds.dotnet.microsoft.com`, `api.nuget.org`,
 `*.nuget.org`) are present but commented out. Uncomment them together with
 `ISK_INSTALL_DOTNET="1"`.
 
-## Wildcard semantics (important)
+## Pattern syntax
 
-The proxy enforces only:
+Docker's network policy supports these resource patterns (per
+[policy concepts](https://docs.docker.com/ai/sandboxes/governance/concepts/#network-rules)):
 
-- Exact host: `api.example.com` (defaults to port 443), or with a port,
-  `api.example.com:8080`.
-- Single-label wildcard: `*.example.com` matches exactly one label. `s3.example.com`
-  matches; `example.com` and `a.b.example.com` do not.
+| Pattern | Example | Matches |
+|---|---|---|
+| Exact host | `example.com` | `example.com` only, not subdomains |
+| Host with port | `example.com:443` | `example.com` on port 443 |
+| Single-level wildcard | `*.example.com` | one label: `api.example.com` |
+| Multi-level wildcard | `**.example.com` | any depth: `api.example.com`, `v2.api.example.com` |
+| CIDR range | `10.0.0.0/8`, `2001:db8::/32` | IPv4 and IPv6 |
 
-Multi-label wildcards (`**.example.com`), CIDRs and port ranges are declared but
-not enforced today, and middle-position wildcards
-(`bedrock-runtime.*.amazonaws.com`) aren't part of the format. List regional
-endpoints explicitly.
+`example.com` and `*.example.com` don't cover each other; list both if you need
+the root and its subdomains. A kit's `network.allowedDomains` is the kit's own
+egress list; it is distinct from (and composed with) the organization- and
+local-level governance policy rules that use this same syntax.
+
+Middle-position wildcards like `bedrock-runtime.*.amazonaws.com` aren't part of
+the format. For AWS regional endpoints, prefer `**.amazonaws.com` or list the
+regions you use.
 
 ## Cloud provider starters
 
 The basic identity and control-plane hosts above are already allowed, so
 `aws sts get-caller-identity`, `az login` and `gcloud auth` work without extra
 setup. For real work you still need the regional service and object-storage
-endpoints your stacks call. Add them to `permissions.network.allow` in
+endpoints your stacks call. Add them to `network.allowedDomains` in
 `kit/spec.yaml` and recreate the sandbox.
 
 ```yaml
@@ -83,7 +91,7 @@ Run once, then read the proxy log. Every blocked row is a host to add:
 sbx policy log <sandbox-name>          # HOST column lists blocked (and allowed) requests
 ```
 
-Add the host to `permissions.network.allow`, recreate the sandbox, and repeat
+Add the host to `network.allowedDomains`, recreate the sandbox, and repeat
 until the blocked list is empty. Provider plugins download on first use from
 GitHub or `get.pulumi.com` (already allowed); a plugin that pulls from a provider
 CDN shows up here too.

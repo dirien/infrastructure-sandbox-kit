@@ -1,6 +1,6 @@
 # Infrastructure kit (mixin)
 
-The declarative half of `infrastructure-sandbox-kit`: a `schemaVersion: "2"`,
+The declarative half of `infrastructure-sandbox-kit`: a `schemaVersion: "1"`,
 `kind: mixin` kit that layers the IaC toolchain onto the built-in `claude` agent.
 It carries the network allow-list, the Pulumi Cloud credential and the agent
 context. When the tools aren't already baked into a [template image](../template),
@@ -16,36 +16,45 @@ sbx run --template infrastructure-sandbox:latest --kit ../kit claude .
 
 # Validate / inspect:
 sbx kit validate ./            # or:  make validate   (from repo root)
-sbx kit inspect ./ --output json
+sbx kit inspect ./ --json
+```
+
+Remote sources (GHCR, git) need one-time authorization, since `sbx` allows only
+`docker.io/` by default:
+
+```bash
+sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com/dirien/"]'
 ```
 
 ## What it declares
 
-- `requires.agent: claude`: Claude-specific wiring, so it only composes onto the
-  `claude` base agent.
-- `permissions.network.allow`: the Pulumi, Terraform and OpenTofu download and
+- `network.allowedDomains`: the Pulumi, Terraform and OpenTofu download and
   registry hosts, the AWS/Azure/Google installer and apt hosts, GitHub, the
   language registries (npm, PyPI, Go proxy), the APM installer, the MCP hosts, and
   a cloud control-plane starter set (AWS STS, Azure ARM and login,
   `*.googleapis.com`). Add the rest of your cloud and region endpoints here; see
   [`../docs/network.md`](../docs/network.md).
-- `credentials[].pulumi`: injects `PULUMI_ACCESS_TOKEN` as
-  `Authorization: token <PAT>` on `api.pulumi.com` through the proxy (sentinel-swap,
-  so the container sees only `proxy-managed`). Cloud creds are supplied separately;
-  see [`../docs/credentials.md`](../docs/credentials.md).
+- `network.serviceDomains` + `network.serviceAuth` + `credentials.sources` +
+  `environment.proxyManaged`: the v1 credential wiring for the Pulumi token. The
+  proxy injects `Authorization: token <PAT>` on `api.pulumi.com`, and the container
+  sees only the proxy-managed placeholder. Store the token with
+  `printf '%s\n' "$PULUMI_ACCESS_TOKEN" | sbx secret set -g pulumi`. Cloud creds
+  are supplied separately; see [`../docs/credentials.md`](../docs/credentials.md).
 - `environment.variables`: `PULUMI_SKIP_UPDATE_CHECK`, `AWS_PAGER`,
   `CLOUDSDK_CORE_DISABLE_PROMPTS`.
-- `setup.install`: runs once, as the `agent` user, before Claude launches. It finds
-  the provisioning scripts (baked image first, otherwise fetched from this repo at
-  `KIT_REF`) and runs `provision.sh`, which is a no-op when the tools are already
-  provisioned.
-- `agentInstructions.content`: IaC guidance, surfaced to Claude through the mixin's
-  sbx-generated `kits-memory/infrastructure.md` file.
+- `commands.install`: runs once, as the `agent` user, before Claude launches. It
+  finds the provisioning scripts (baked image first, otherwise fetched from this
+  repo at `KIT_REF` into a stable home path) and runs `provision.sh`, a no-op when
+  the tools are already provisioned.
+- `commands.startup`: runs on every sandbox start. Docker reseeds Claude's
+  `~/.claude/settings.json` and `~/.claude.json` at create time, so this re-applies
+  the APM guardrail hooks and MCP servers (idempotent) via `apply-agent-config.sh`.
+- `agentContext`: IaC guidance surfaced to Claude.
 
 ## Pinning
 
-`setup.install` hardcodes the pins, because a kit's `environment.variables` aren't
-set yet when the install hook runs:
+`commands.install` hardcodes the pins, because a kit's `environment.variables`
+aren't set yet when the install hook runs:
 
 - `ISK_PULUMI_VERSION`, `ISK_ESC_VERSION`, `ISK_TERRAFORM_VERSION`,
   `ISK_OPENTOFU_VERSION`, `ISK_AWSCLI_VERSION`, `ISK_INSTALL_CLOUDS`,
@@ -58,5 +67,5 @@ set yet when the install hook runs:
 
 - Skip the cloud CLIs for a faster create: set `ISK_INSTALL_CLOUDS="0"`.
 - Enable .NET (Pulumi C#): uncomment the `.NET` domains under
-  `permissions.network.allow` and set `ISK_INSTALL_DOTNET="1"`. On the template
-  path, use `make build INSTALL_DOTNET=1` instead.
+  `network.allowedDomains` and set `ISK_INSTALL_DOTNET="1"`. On the template path,
+  use `make build INSTALL_DOTNET=1` instead.

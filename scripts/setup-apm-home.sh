@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 # setup-apm-home.sh — install APM and materialize dirien/my-claude-apm-setup into
 # the agent's USER-GLOBAL Claude config (~/.claude), so the skills, subagents,
-# rules, guardrail hooks and MCP servers are active in *every* workspace opened
-# in the sandbox — "out of the box", no per-repo apm.yml required.
+# rules, guardrail hooks and MCP servers are active in every workspace opened in
+# the sandbox, with no per-repo apm.yml required.
 #
-# What it wires (all idempotent):
-#   ~/.claude/skills/*         <- the 23 pinned APM skills
-#   ~/.claude/agents/*         <- executor / librarian / reviewer subagents
-#   ~/.claude/rules/*          <- the instruction rules
+# What it wires:
+#   ~/.claude/skills/*         <- the 23 pinned APM skills (durable across restarts)
+#   ~/.claude/agents/*         <- executor / librarian / reviewer subagents (durable)
+#   ~/.claude/rules/*          <- the instruction rules (durable)
 #   ~/.claude/CLAUDE.md        <- a managed block importing those rules
-#   ~/.claude/settings.json    <- PreToolUse guard + PostToolUse format/secret hooks
-#                                 (paths rewritten to absolute so they work anywhere)
-#   ~/.claude.json mcpServers  <- context7 + pulumi MCP at USER scope (claude mcp add-json)
-#   ~/.claude/.lsp.json        <- APM's language-server config (best-effort)
+#   ~/.claude/settings.json    <- guardrail hooks     (via apply-agent-config.sh)
+#   ~/.claude.json mcpServers  <- context7 + pulumi   (via apply-agent-config.sh)
+#
+# The settings.json/.claude.json parts are re-applied on every sandbox start by
+# the kit's commands.startup step, because Docker reseeds agent config at create
+# time. This script does the one-time install and the durable file placement, then
+# calls apply-agent-config.sh once so the config is present right after provisioning.
 #
 # Runs as the agent user. Re-runnable; safe to call again after `git pull`.
 set -euo pipefail
@@ -79,80 +82,9 @@ awk -v b="$BEGIN" -v e="$END" '
 } > "$CLAUDE_MD"
 rm -f "$tmp_md"
 
-# --- 6. Merge guardrail hooks into ~/.claude/settings.json -----------------
-# The APM-generated hooks reference ${CLAUDE_PROJECT_DIR:-.}/scripts/*.sh; rewrite
-# to the absolute setup path so they fire in any workspace, then merge (dedup by
-# event+matcher+command) into whatever user settings already exist.
-SRC_SETTINGS="$SETUP_DIR/.claude/settings.json"
-if [ -f "$SRC_SETTINGS" ]; then
-  SETUP_DIR="$SETUP_DIR" DST="$CLAUDE_HOME/settings.json" SRC="$SRC_SETTINGS" python3 - <<'PY'
-import json, os
-setup_dir = os.environ["SETUP_DIR"]
-dst_path  = os.environ["DST"]
-src_path  = os.environ["SRC"]
-
-def load(p):
-    try:
-        with open(p) as f:
-            return json.load(f)
-    except Exception:
-        return {}
-
-src = load(src_path)
-dst = load(dst_path)
-dst.setdefault("hooks", {})
-
-def rewrite(cmd: str) -> str:
-    return cmd.replace("${CLAUDE_PROJECT_DIR:-.}", setup_dir).replace("$CLAUDE_PROJECT_DIR", setup_dir)
-
-for event, groups in (src.get("hooks") or {}).items():
-    existing = dst["hooks"].setdefault(event, [])
-    seen = {
-        (g.get("matcher", ""), h.get("command", ""))
-        for g in existing for h in (g.get("hooks") or [])
-    }
-    for g in groups:
-        hooks = []
-        for h in (g.get("hooks") or []):
-            h = dict(h)
-            if h.get("type") == "command" and "command" in h:
-                h["command"] = rewrite(h["command"])
-            key = (g.get("matcher", ""), h.get("command", ""))
-            if key in seen:
-                continue
-            seen.add(key)
-            hooks.append(h)
-        if hooks:
-            existing.append({"matcher": g.get("matcher", ""), "hooks": hooks})
-
-os.makedirs(os.path.dirname(dst_path), exist_ok=True)
-with open(dst_path, "w") as f:
-    json.dump(dst, f, indent=2)
-    f.write("\n")
-print(f"[infrastructure-sandbox-kit] wired guardrail hooks -> {dst_path}")
-PY
-fi
-
-# --- 7. Register the MCP servers at USER scope -----------------------------
-# Read the servers APM configured (SETUP_DIR/.mcp.json) and register each at user
-# scope with the Claude CLI, so they are available in every workspace.
-if have claude && [ -f "$SETUP_DIR/.mcp.json" ]; then
-  while IFS=$'\t' read -r name cfg; do
-    [ -n "$name" ] || continue
-    log "registering MCP server '${name}' (user scope)"
-    timeout 60 claude mcp remove -s user "$name"  >/dev/null 2>&1 || true
-    timeout 60 claude mcp add-json -s user "$name" "$cfg" >/dev/null 2>&1 \
-      || warn "could not register MCP server '${name}' (add it later with: claude mcp add-json -s user ${name} '<json>')"
-  done < <(python3 - "$SETUP_DIR/.mcp.json" <<'PY'
-import json, sys
-try:
-    servers = json.load(open(sys.argv[1])).get("mcpServers", {})
-except Exception:
-    servers = {}
-for name, cfg in servers.items():
-    print(name + "\t" + json.dumps(cfg, separators=(",", ":")))
-PY
-)
-fi
+# --- 6. Apply guardrail hooks + MCP (shared with the commands.startup step) --
+# Runs the same idempotent apply that fires on every sandbox start, so the hooks
+# and MCP servers are present right after provisioning too.
+ISK_APM_SETUP_DIR="$SETUP_DIR" bash "$SCRIPT_DIR/apply-agent-config.sh"
 
 log "APM home setup complete"

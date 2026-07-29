@@ -4,9 +4,11 @@
 #   * Azure CLI   — Microsoft apt repo, GPG-signed (dist pinned; see ISK_AZ_APT_DIST)
 #   * gcloud      — Google Cloud apt repo, GPG-signed (codename-independent `cloud-sdk`)
 #
-# AWS is fatal on failure (rock-solid pinned download); the apt-based Azure/gcloud
-# installs are best-effort (warn, don't abort) so a flaky vendor repo never blocks
-# the rest of provisioning (APM, etc.). All idempotent.
+# When enabled (ISK_INSTALL_CLOUDS=1), every one of these is FATAL on failure, so a
+# broken install never gets marked as provisioned. provision.sh runs under `set -e`
+# and only writes its sentinel after this exits 0, so a transient vendor-repo failure
+# aborts provisioning (loud, visible) and is retried on the next create/build instead
+# of silently shipping a sandbox without az or gcloud. All idempotent.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
@@ -65,7 +67,7 @@ install_azure() {
     | as_root tee /etc/apt/sources.list.d/azure-cli.list >/dev/null
   apt_update_one azure-cli.list
   as_root apt-get install -y azure-cli
-  have az || return 1
+  have az || die "azure-cli not on PATH after install"
   log "azure-cli installed: $(az version --output tsv 2>/dev/null | head -1 || echo '?')"
 }
 
@@ -78,9 +80,12 @@ install_gcloud() {
     | as_root tee /etc/apt/sources.list.d/google-cloud-sdk.list >/dev/null
   apt_update_one google-cloud-sdk.list
   as_root apt-get install -y google-cloud-cli
-  have gcloud || return 1
+  have gcloud || die "gcloud not on PATH after install"
   log "gcloud installed: $(gcloud version 2>/dev/null | head -1 || echo '?')"
 }
 
-( set -e; install_azure ) || warn "azure-cli install failed (non-fatal) — install later with: sudo apt-get install azure-cli"
-( set -e; install_gcloud ) || warn "gcloud install failed (non-fatal) — install later with: sudo apt-get install google-cloud-cli"
+# Fatal when enabled: a failure here aborts provisioning (set -e) before the
+# sentinel is written, so the missing tool is retried next time rather than
+# silently absent. Set ISK_INSTALL_CLOUDS=0 to skip clouds entirely.
+install_azure
+install_gcloud

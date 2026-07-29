@@ -79,10 +79,17 @@ git clone https://github.com/dirien/infrastructure-sandbox-kit.git
 sbx run --kit ./infrastructure-sandbox-kit/kit claude .
 ```
 
+By default `sbx` only allows kits from `docker.io/`. Authorize the GHCR and GitHub
+sources once on your host (local `./kit` paths are allowed by default):
+
+```bash
+sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com/dirien/"]'
+```
+
 On the stock `claude` image the kit installs the toolchain at create time, which
 takes a few minutes. For reproducible runs, pin the git URL with `&ref=v0.2.0`
-and run `make pin REF=v0.2.0` so the fetched scripts match, or pin the OCI ref by
-digest (`@sha256:...`).
+(and run `make pin REF=v0.2.0` so the fetched scripts match), or pin the OCI ref
+by digest (`ghcr.io/dirien/infrastructure-kit@sha256:...`).
 
 Once the sandbox is up, `~/runbooks/` holds credential-free Pulumi and
 Terraform/OpenTofu starters:
@@ -93,9 +100,12 @@ cd ~/runbooks/terraform-random && terraform init && terraform plan
 
 ## Install hardening
 
-Every tool is installed from a pinned version and verified. There are no
-`curl | sh` pipes, which is the main gap in the comparable community kits (see
-[How this compares](#how-this-compares)).
+The core IaC tools are installed from a pinned version and verified by checksum
+or signature, no `curl | sh`. That covers Pulumi and ESC, Terraform, OpenTofu and
+the AWS CLI (pinned + SHA256), and Azure CLI and gcloud (GPG-signed vendor apt
+repos). The language servers, `golangci-lint` and APM itself use their vendors'
+installers (`go install`, `npm`, the APM install script), so those are not
+version-pinned.
 
 | Tool | Method | Verification |
 |---|---|---|
@@ -163,30 +173,29 @@ collection (Firecrawl, mem0, SurrealDB, Grafana, Dagger, VS Code, and others):
 
 - It is the first IaC kit. Nothing in his `awesome-docker-sbx` catalog covers
   Pulumi, Terraform or OpenTofu; those kits each wrap a single tool.
-- Every tool here is installed from a pinned version and verified by SHA256 or a
-  GPG signature. The community kits mostly install with `curl | sh` or
-  `pip install ==x` (see the table above).
+- The core IaC tools are pinned and verified by SHA256 or a GPG signature (see
+  the hardening table). The community kits mostly install with `curl | sh` or
+  `pip install ==x`.
 - No other kit wires a whole agent-config framework (skills, subagents, hooks,
   MCP) into `~/.claude`.
-- It uses the documented v2 spec surface (`permissions`, `setup`,
-  `agentInstructions`) and validates clean against Docker's reference `sbx` spec
-  library. Several community `schemaVersion:"2"` kits use canonical keys that the
-  strict v2 decoder rejects.
-- It also borrows two things from his kits: OCI publishing (`sbx kit push` to
-  GHCR, via `.github/workflows/publish-kit.yaml`) and starter runbook files
+- It borrows two things from his kits: OCI publishing (`sbx kit push` to GHCR, via
+  `.github/workflows/publish-kit.yaml`) and starter runbook files
   (`kit/files/home/runbooks/`).
 
 ## Notes and limitations
 
 - Cloud endpoints beyond the starters must be added per provider and region to
-  the `permissions.network.allow` list in `kit/spec.yaml`. Sandbox policy enforces
-  only exact hosts and single-label `*.host` wildcards. See
+  the `network.allowedDomains` list in `kit/spec.yaml`. Docker's policy syntax
+  supports exact hosts, `*.host`, `**.host` and CIDR ranges. See
   [`docs/network.md`](docs/network.md).
-- Cloud auth is not baked in. `aws`, `az` and `gcloud` need credentials at run
-  time (env vars) or through Pulumi ESC. AWS uses SigV4, so its credentials stay
-  in the container. See [`docs/credentials.md`](docs/credentials.md).
-- Kits are experimental. The spec targets `schemaVersion: "2"` and validates
-  clean against the current `sbx` spec library.
+- Cloud auth is not baked in. `aws`, `az` and `gcloud` need credentials supplied
+  at run time or through Pulumi ESC. AWS uses SigV4, so its credentials stay in
+  the container. See [`docs/credentials.md`](docs/credentials.md).
+- Kits are experimental. The kit targets the current `sbx` v1 grammar
+  (`network.allowedDomains`, `commands`, `credentials.sources`, `agentContext`)
+  from Docker's [kit reference](https://docs.docker.com/ai/sandboxes/customize/kit-reference/).
+  `sbx` is a host tool that isn't available in every environment, so validate on
+  your host with `sbx kit validate ./kit`.
 
 ## License
 

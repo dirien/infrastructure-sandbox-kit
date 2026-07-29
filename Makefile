@@ -82,7 +82,7 @@ validate: ## Validate the kit spec with sbx
 
 .PHONY: inspect
 inspect: ## Show the normalized (canonical) kit spec
-	sbx kit inspect $(KIT) --output json
+	sbx kit inspect $(KIT) --json
 
 ## --- Run -------------------------------------------------------------------
 
