@@ -10,6 +10,8 @@ DOCKERFILE  ?= template/Dockerfile
 PLATFORM    ?=                      # e.g. linux/arm64 or linux/amd64,linux/arm64
 KIT         ?= ./kit
 WORKDIR     ?= .
+REGISTRY    ?= ghcr.io/dirien       # OCI registry for `make publish-kit`
+TAG         ?= latest               # OCI tag for `make publish-kit`
 
 # Pins forwarded to the image build (mirror the defaults in kit/spec.yaml).
 PULUMI_VERSION     ?= 3.255.0
@@ -67,6 +69,10 @@ load: build ## Build then load the image into sbx's local template store (no reg
 .PHONY: push
 push: ## Push the image to a registry (set IMAGE=<registry>/<repo>:<tag>)
 	docker push $(IMAGE)
+
+.PHONY: publish-kit
+publish-kit: ## Push the kit to an OCI registry (REGISTRY=ghcr.io/dirien TAG=latest); needs sbx + docker login
+	REGISTRY=$(REGISTRY) TAG=$(TAG) ./scripts/push-kit.sh
 
 ## --- Kit (zero-build mixin) ------------------------------------------------
 

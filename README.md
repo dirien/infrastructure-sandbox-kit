@@ -70,6 +70,16 @@ sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=
 # pin it:  …#dir=kit&ref=v0.2.0   (and run `make pin REF=v0.2.0` so the fetched scripts match)
 ```
 
+Or from the OCI artifact published by CI (`make publish-kit` / the publish-kit
+workflow push to GHCR), pinned by digest:
+
+```bash
+sbx run --kit "oci://ghcr.io/dirien/infrastructure-kit@sha256:<digest>" claude .
+```
+
+Once running, `~/runbooks/` holds credential-free Pulumi and Terraform/OpenTofu
+starters — `cd ~/runbooks/terraform-random && terraform init && terraform plan`.
+
 ## Install hardening
 
 Every tool is installed from a pinned version and verified — no `curl | sh`
@@ -150,8 +160,9 @@ collection (Firecrawl, mem0, SurrealDB, Grafana, Dagger, VS Code, …):
   `agentInstructions` v2 surface and validates clean against Docker's reference
   `sbx` spec library; several community `schemaVersion:"2"` kits use canonical
   keys the strict v2 decoder rejects.
-- **To adopt from him:** OCI publishing (`sbx kit push` + CI) and starter runbook
-  files — both are on the roadmap.
+- **Borrowed from him (now done):** OCI publishing (`sbx kit push` → GHCR via
+  `.github/workflows/publish-kit.yaml`) and starter runbook files
+  (`kit/files/home/runbooks/`).
 
 ## Notes & limitations
 
