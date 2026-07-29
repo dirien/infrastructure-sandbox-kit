@@ -117,24 +117,24 @@ commands:
         DIR="$HOME/.local/share/infrastructure-sandbox-kit/scripts"
         if [ ! -f "$DIR/provision.sh" ]; then
           mkdir -p "$DIR"
-          for s in lib.sh install-pulumi.sh install-iac.sh install-clouds.sh install-toolchains.sh setup-apm-home.sh apply-agent-config.sh provision.sh; do
+          for s in lib.sh install-pulumi.sh install-iac.sh install-clouds.sh install-toolchains.sh setup-apm-home.sh apply-agent-config.sh startup.sh provision.sh; do
             curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --retry-delay 2 \
               -o "$DIR/$s" "https://raw.githubusercontent.com/$KIT_REPO/$KIT_REF/scripts/$s"
           done
         fi
         bash "$DIR/provision.sh"
   startup:
-    # Runs on EVERY sandbox start, after Docker seeds Claude's agent config. Docker
-    # reseeds ~/.claude/settings.json and ~/.claude.json at create time, so this
-    # re-applies the guardrail hooks + MCP servers (idempotent). No-op if the
-    # scripts aren't present.
+    # Runs on EVERY sandbox start. Docker reseeds ~/.claude/settings.json and
+    # ~/.claude.json at create time, so this re-applies the guardrail hooks + MCP
+    # servers (idempotent) and retries any cloud CLI that didn't install at create
+    # time. Both steps are idempotent and non-fatal. No-op if the scripts aren't present.
     - user: "1000"
-      description: "Re-apply APM guardrail hooks + MCP after Docker seeds the agent config (idempotent)"
+      description: "Re-apply APM hooks + MCP and retry any missing cloud CLI (idempotent)"
       command:
         - bash
         - -lc
         - |
-          f="$HOME/.local/share/infrastructure-sandbox-kit/scripts/apply-agent-config.sh"
+          f="$HOME/.local/share/infrastructure-sandbox-kit/scripts/startup.sh"
           [ -f "$f" ] && bash "$f" || true
 
 agentContext: |

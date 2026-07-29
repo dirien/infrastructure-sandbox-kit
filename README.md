@@ -142,10 +142,12 @@ infrastructure-sandbox-kit/
 │   ├── lib.sh                 #   shared helpers (arch, fetch, verify)
 │   ├── install-pulumi.sh      #   Pulumi CLI + ESC (pinned, SHA256-verified)
 │   ├── install-iac.sh         #   Terraform + OpenTofu (SHA256SUMS-verified)
-│   ├── install-clouds.sh      #   AWS (pinned SHA) + Azure/gcloud (GPG apt)
+│   ├── install-clouds.sh      #   AWS (pinned SHA) + Azure/gcloud (GPG apt), per-component
 │   ├── install-toolchains.sh  #   gopls / tsserver / pyright / golangci-lint (+ optional .NET)
 │   ├── setup-apm-home.sh      #   APM + my-claude-apm-setup into ~/.claude
+│   ├── apply-agent-config.sh  #   (re)apply guardrail hooks + MCP (idempotent)
 │   ├── provision.sh           #   orchestrator (sentinel-guarded, idempotent)
+│   ├── startup.sh             #   commands.startup: re-apply config + retry missing clouds
 │   └── push-kit.sh            #   publish the kit to an OCI registry
 ├── docs/credentials.md        # binding Pulumi / cloud creds
 ├── docs/network.md            # extending the allow-list for your clouds

@@ -46,10 +46,16 @@ sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com
   finds the provisioning scripts (baked image first, otherwise fetched from this
   repo at `KIT_REF` into a stable home path) and runs `provision.sh`, a no-op when
   the tools are already provisioned.
-- `commands.startup`: runs on every sandbox start. Docker reseeds Claude's
-  `~/.claude/settings.json` and `~/.claude.json` at create time, so this re-applies
-  the APM guardrail hooks and MCP servers (idempotent) via `apply-agent-config.sh`.
+- `commands.startup`: runs `startup.sh` on every sandbox start. Docker reseeds
+  Claude's `~/.claude/settings.json` and `~/.claude.json` at create time, so it
+  re-applies the APM guardrail hooks and MCP servers (via `apply-agent-config.sh`),
+  and retries any cloud CLI that didn't install at create time. Both are idempotent.
 - `agentContext`: IaC guidance surfaced to Claude.
+
+Cloud CLI installs are per-component and non-fatal: a flaky Azure/Google apt repo
+never blocks `sbx create`. The sandbox comes up, and `startup.sh` fills in the
+missing CLI on a later start (tracked by the binary being on `PATH`). Core tools
+(Pulumi/ESC, Terraform, OpenTofu) are still fatal.
 
 ## Pinning
 
