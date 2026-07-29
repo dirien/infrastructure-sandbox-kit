@@ -60,7 +60,7 @@ else
   esc_tarball="esc-v${ESC_VERSION}-linux-${ARCH}.tar.gz"
   fetch "https://github.com/pulumi/esc/releases/download/v${ESC_VERSION}/${esc_tarball}" "$tmp/$esc_tarball"
   # Verify against the release's published checksums when available (best-effort).
-  if fetch "https://github.com/pulumi/esc/releases/download/v${ESC_VERSION}/esc-v${ESC_VERSION}-checksums.txt" "$tmp/esc-sums.txt" 2>/dev/null; then
+  if fetch "https://github.com/pulumi/esc/releases/download/v${ESC_VERSION}/esc-${ESC_VERSION}-checksums.txt" "$tmp/esc-sums.txt" 2>/dev/null; then
     expected="$(grep "linux-${ARCH}.tar.gz" "$tmp/esc-sums.txt" | awk '{print $1}' | head -1)"
     if [ -n "$expected" ]; then verify_sha256 "$tmp/$esc_tarball" "$expected"; else warn "esc checksum entry not found; skipping verification"; fi
   else
