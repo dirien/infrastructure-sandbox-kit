@@ -20,8 +20,9 @@ printf '%s\n' "$PULUMI_ACCESS_TOKEN" | sbx secret set -g pulumi
 ```
 
 `-g` stores it globally (all sandboxes on this host); use `sbx secret set <sandbox> pulumi`
-for one sandbox. After that, `pulumi login`, `pulumi up` and `esc` authenticate
-through the proxy, and the container only ever holds the proxy-managed placeholder.
+for one sandbox. After that, `pulumi login`, `pulumi up` and `pulumi env`
+authenticate through the proxy, and the container only ever holds the
+proxy-managed placeholder.
 
 ## Anthropic (Claude Code itself)
 
@@ -40,9 +41,10 @@ which clouds you target is per project. Three options:
 
 ### Option A (recommended): Pulumi ESC
 
-`esc` is installed. Keep cloud credentials in a Pulumi ESC environment and let
-Pulumi pull short-lived creds through OIDC at `pulumi up` time, so nothing
-long-lived lands in the sandbox. Add `api.pulumi.com` (already allowed) and your
+Reach ESC through `pulumi env` (the standalone `esc` CLI was retired in 2026).
+Keep cloud credentials in a Pulumi ESC environment and let Pulumi pull short-lived
+creds through OIDC at `pulumi up` time, so nothing long-lived lands in the
+sandbox. Add `api.pulumi.com` (already allowed) and your
 cloud's STS/OIDC endpoints to the network allow-list ([`network.md`](network.md)).
 
 ### Option B: environment variables inside the sandbox

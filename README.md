@@ -8,8 +8,9 @@ Terraform, OpenTofu and the AWS, Azure and Google Cloud CLIs, and wires
 
 The sandbox comes with:
 
-- Pulumi CLI and ESC, Terraform, and OpenTofu, each pinned to a version and
-  verified by checksum or signature. Pulumi ships with its bundled language plugins.
+- Pulumi CLI, Terraform, and OpenTofu, each pinned to a version and verified by
+  checksum or signature. Pulumi ships with its bundled language plugins, and ESC is
+  available through `pulumi env` (the standalone `esc` CLI was retired in 2026).
 - The AWS CLI v2, Azure CLI and gcloud. Set `INSTALL_CLOUDS=0` to skip them.
 - The language runtimes from the base image (Go, Node, Python, Java) plus the
   language servers `gopls`, `typescript-language-server`, `pyright` and
@@ -87,9 +88,14 @@ sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com
 ```
 
 On the stock `claude` image the kit installs the toolchain at create time, which
-takes a few minutes. For reproducible runs, pin the git URL with `&ref=v0.2.0`
-(and run `make pin REF=v0.2.0` so the fetched scripts match), or pin the OCI ref
-by digest (`ghcr.io/dirien/infrastructure-kit@sha256:...`).
+takes a few minutes.
+
+Reproducibility: the kit fetches its provisioning scripts from `KIT_REF` in
+`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.3.0`), not a
+moving branch — so the scripts don't change under you even if you fetch the kit
+from `main`. `make publish-kit` goes further and rewrites `KIT_REF` to the exact
+commit SHA in the OCI artifact. To pin a git run to a different release, use
+`…&ref=<tag>` and `make pin REF=<tag>` (which sets `KIT_REF` to match).
 
 Once the sandbox is up, `~/runbooks/` holds credential-free Pulumi and
 Terraform/OpenTofu starters:
@@ -109,7 +115,7 @@ version-pinned.
 
 | Tool | Method | Verification |
 |---|---|---|
-| Pulumi CLI + ESC | GitHub release tarball | pinned per-arch SHA256 |
+| Pulumi CLI | GitHub release tarball | pinned per-arch SHA256 |
 | Terraform | HashiCorp releases | published SHA256SUMS |
 | OpenTofu | GitHub release | published SHA256SUMS |
 | AWS CLI v2 | official installer zip | pinned per-arch SHA256 |
@@ -136,11 +142,11 @@ To update it later, run `git -C ~/.claude-apm-setup pull && ISK_FORCE=1 ~/.local
 
 ```
 infrastructure-sandbox-kit/
-├── kit/spec.yaml              # the kit: kind: mixin (schemaVersion "2"), requires claude
+├── kit/spec.yaml              # the kit: kind: mixin, schemaVersion "1"
 ├── template/Dockerfile        # the baked image (FROM claude-code-docker)
 ├── scripts/                   # canonical provisioning, shared by both paths
 │   ├── lib.sh                 #   shared helpers (arch, fetch, verify)
-│   ├── install-pulumi.sh      #   Pulumi CLI + ESC (pinned, SHA256-verified)
+│   ├── install-pulumi.sh      #   Pulumi CLI (pinned, SHA256-verified)
 │   ├── install-iac.sh         #   Terraform + OpenTofu (SHA256SUMS-verified)
 │   ├── install-clouds.sh      #   AWS (pinned SHA) + Azure/gcloud (GPG apt), per-component
 │   ├── install-toolchains.sh  #   gopls / tsserver / pyright / golangci-lint (+ optional .NET)
@@ -158,7 +164,7 @@ infrastructure-sandbox-kit/
 
 | Component | Default | Where to change |
 |---|---|---|
-| Pulumi CLI / ESC | `3.255.0` / `0.26.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
+| Pulumi CLI | `3.255.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Terraform | `1.15.8` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
 | OpenTofu | `1.12.5` | same |
 | AWS CLI v2 | `2.36.10` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |

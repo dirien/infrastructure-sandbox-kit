@@ -31,7 +31,7 @@ network:
     - packages.microsoft.com
     - packages.cloud.google.com
     - dl.google.com
-    # GitHub: Pulumi/ESC/OpenTofu binaries, provider plugins, gh, APM repos
+    # GitHub: Pulumi/OpenTofu binaries, provider plugins, gh, APM repos
     - github.com
     - api.github.com
     - codeload.github.com
@@ -102,7 +102,6 @@ commands:
         set -eu
         # --- pins (edit to taste) ---
         export ISK_PULUMI_VERSION="3.255.0"
-        export ISK_ESC_VERSION="0.26.0"
         export ISK_TERRAFORM_VERSION="1.15.8"
         export ISK_OPENTOFU_VERSION="1.12.5"
         export ISK_AWSCLI_VERSION="2.36.10"
@@ -112,7 +111,10 @@ commands:
         export ISK_APM_SETUP_REF="v0.4.0"
         export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
         KIT_REPO="dirien/infrastructure-sandbox-kit"
-        KIT_REF="main"                       # pin to a tag or 40-char commit SHA for reproducibility
+        # Immutable ref the provisioning scripts are fetched from (reproducible). A
+        # released tag/SHA — NOT a moving branch. `sbx kit push` rewrites this to the
+        # exact commit SHA when publishing to OCI (see scripts/push-kit.sh).
+        KIT_REF="v0.3.0"
         # --- locate the provisioning scripts: baked image first, else fetch to a stable home path ---
         DIR="$HOME/.local/share/infrastructure-sandbox-kit/scripts"
         if [ ! -f "$DIR/provision.sh" ]; then
@@ -144,8 +146,9 @@ agentContext: |
   the major cloud CLIs.
 
   Tools on PATH:
-  - `pulumi` + `esc` — `PULUMI_ACCESS_TOKEN` is proxy-managed, so `pulumi login`
-    and Pulumi/ESC API calls work without a token ever entering the container.
+  - `pulumi` — `PULUMI_ACCESS_TOKEN` is proxy-managed, so `pulumi login`, `pulumi up`
+    and `pulumi env` (Pulumi ESC; the standalone `esc` CLI was retired in 2026) work
+    without a token ever entering the container.
   - `terraform` and `tofu` (OpenTofu) — drop-in HCL engines.
   - `aws`, `az`, `gcloud` — cloud CLIs (installed unless the kit was built/run
     with ISK_INSTALL_CLOUDS=0).

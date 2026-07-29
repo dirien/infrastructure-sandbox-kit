@@ -17,10 +17,10 @@ if [ -f "$SCRIPT_DIR/apply-agent-config.sh" ]; then
   bash "$SCRIPT_DIR/apply-agent-config.sh" || log "apply-agent-config failed (non-fatal)"
 fi
 
-# 2. Retry missing cloud CLIs, only if they were requested at provision time -
+# 2. Fill in any missing/stale cloud CLI, only if they were requested at provision
+#    time. install-clouds.sh is per-component and version-aware, so it re-installs a
+#    stale AWS CLI and a missing az/gcloud while skipping what's already current. It
+#    is a fast no-op once everything is present at the right version.
 if [ -f "$STATE_DIR/clouds-requested" ] && [ -f "$SCRIPT_DIR/install-clouds.sh" ]; then
-  if ! { command -v aws && command -v az && command -v gcloud; } >/dev/null 2>&1; then
-    log "one or more cloud CLIs missing — retrying"
-    bash "$SCRIPT_DIR/install-clouds.sh" || log "cloud CLIs still incomplete; will retry next start"
-  fi
+  bash "$SCRIPT_DIR/install-clouds.sh" || log "cloud CLIs still incomplete; will retry next start"
 fi

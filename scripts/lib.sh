@@ -31,7 +31,7 @@ as_root() {
   fi
 }
 
-# rel_arch — the Pulumi/ESC release-artifact arch token: x64 | arm64.
+# rel_arch — the Pulumi release-artifact arch token: x64 | arm64.
 rel_arch() {
   case "$(dpkg --print-architecture 2>/dev/null || uname -m)" in
     amd64|x86_64) echo "x64" ;;

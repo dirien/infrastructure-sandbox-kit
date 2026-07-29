@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # provision.sh — orchestrate the full infrastructure-sandbox-kit provisioning:
-#   1. Pulumi CLI + ESC              (install-pulumi.sh)
+#   1. Pulumi CLI                    (install-pulumi.sh)
 #   2. Terraform + OpenTofu          (install-iac.sh)
 #   3. AWS / Azure / gcloud CLIs     (install-clouds.sh; ISK_INSTALL_CLOUDS=1, default on)
 #   4. language toolchains / LSPs    (install-toolchains.sh)

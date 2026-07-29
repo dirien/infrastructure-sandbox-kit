@@ -12,7 +12,7 @@ and APM) at sandbox-create time.
 sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit" claude .
 
 # On the baked template (install is a fast no-op; kit just wires net/creds/MCP):
-sbx run --template infrastructure-sandbox:latest --kit ../kit claude .
+sbx run --template infrastructure-sandbox:latest --kit . claude .
 
 # Validate / inspect:
 sbx kit validate ./            # or:  make validate   (from repo root)
@@ -54,15 +54,15 @@ sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com
 
 Cloud CLI installs are per-component and non-fatal: a flaky Azure/Google apt repo
 never blocks `sbx create`. The sandbox comes up, and `startup.sh` fills in the
-missing CLI on a later start (tracked by the binary being on `PATH`). Core tools
-(Pulumi/ESC, Terraform, OpenTofu) are still fatal.
+missing CLI on a later start (tracked by version/presence). Core tools (Pulumi,
+Terraform, OpenTofu) are still fatal.
 
 ## Pinning
 
 `commands.install` hardcodes the pins, because a kit's `environment.variables`
 aren't set yet when the install hook runs:
 
-- `ISK_PULUMI_VERSION`, `ISK_ESC_VERSION`, `ISK_TERRAFORM_VERSION`,
+- `ISK_PULUMI_VERSION`, `ISK_TERRAFORM_VERSION`,
   `ISK_OPENTOFU_VERSION`, `ISK_AWSCLI_VERSION`, `ISK_INSTALL_CLOUDS`,
   `ISK_APM_SETUP_REF`, `ISK_INSTALL_DOTNET`: edit inline in `spec.yaml`.
 - `KIT_REF`: the ref the provisioning scripts are fetched from. It defaults to

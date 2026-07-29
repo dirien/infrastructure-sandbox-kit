@@ -2,7 +2,7 @@
 #
 # Infrastructure sandbox template — Claude Code base image enriched for IaC work.
 #
-# Bakes in the Pulumi CLI + ESC, Terraform, OpenTofu, the AWS/Azure/gcloud CLIs,
+# Bakes in the Pulumi CLI, Terraform, OpenTofu, the AWS/Azure/gcloud CLIs,
 # language servers and golangci-lint (and optionally the .NET SDK), and
 # materializes dirien/my-claude-apm-setup into the agent's ~/.claude so skills,
 # subagents, guardrail hooks and MCP servers are present the moment the sandbox
@@ -17,7 +17,6 @@ FROM ${BASE}
 
 # Pin everything; override with --build-arg as needed.
 ARG ISK_PULUMI_VERSION=3.255.0
-ARG ISK_ESC_VERSION=0.26.0
 ARG ISK_TERRAFORM_VERSION=1.15.8
 ARG ISK_OPENTOFU_VERSION=1.12.5
 ARG ISK_AWSCLI_VERSION=2.36.10
@@ -33,7 +32,6 @@ ARG ISK_DOTNET_CHANNEL=8.0
 USER agent
 
 ENV ISK_PULUMI_VERSION=${ISK_PULUMI_VERSION} \
-    ISK_ESC_VERSION=${ISK_ESC_VERSION} \
     ISK_TERRAFORM_VERSION=${ISK_TERRAFORM_VERSION} \
     ISK_OPENTOFU_VERSION=${ISK_OPENTOFU_VERSION} \
     ISK_AWSCLI_VERSION=${ISK_AWSCLI_VERSION} \

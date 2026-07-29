@@ -15,7 +15,6 @@ TAG         ?= latest               # OCI tag for `make publish-kit`
 
 # Pins forwarded to the image build (mirror the defaults in kit/spec.yaml).
 PULUMI_VERSION     ?= 3.255.0
-ESC_VERSION        ?= 0.26.0
 TERRAFORM_VERSION  ?= 1.15.8
 OPENTOFU_VERSION   ?= 1.12.5
 AWSCLI_VERSION     ?= 2.36.10
@@ -27,7 +26,6 @@ DOTNET_CHANNEL     ?= 8.0
 
 BUILD_ARGS = \
   --build-arg ISK_PULUMI_VERSION=$(PULUMI_VERSION) \
-  --build-arg ISK_ESC_VERSION=$(ESC_VERSION) \
   --build-arg ISK_TERRAFORM_VERSION=$(TERRAFORM_VERSION) \
   --build-arg ISK_OPENTOFU_VERSION=$(OPENTOFU_VERSION) \
   --build-arg ISK_AWSCLI_VERSION=$(AWSCLI_VERSION) \

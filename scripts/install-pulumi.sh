@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# install-pulumi.sh — install a pinned, checksum-verified Pulumi CLI (with all
-# the bundled language/resource plugins) and the Pulumi ESC CLI, system-wide.
+# install-pulumi.sh — install a pinned, checksum-verified Pulumi CLI (with all the
+# bundled language/resource plugins) system-wide. ESC is reached via `pulumi env`;
+# the standalone `esc` CLI was retired by Pulumi in 2026, so it is not installed.
 #
 # Idempotent: skips when the pinned version is already installed. Downloads come
 # from GitHub release assets (get.pulumi.com just redirects there) so the same
@@ -12,7 +13,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 
 PULUMI_VERSION="${ISK_PULUMI_VERSION:-3.255.0}"
-ESC_VERSION="${ISK_ESC_VERSION:-0.26.0}"
 PREFIX="/opt/pulumi"
 ARCH="$(rel_arch)"
 
@@ -48,27 +48,4 @@ else
   as_root sh -c 'for f in "'"$PREFIX"'"/pulumi*; do ln -sf "$f" "/usr/local/bin/$(basename "$f")"; done'
   have pulumi || die "pulumi not on PATH after install"
   log "pulumi installed: $(pulumi version)"
-fi
-
-# --- Pulumi ESC CLI --------------------------------------------------------
-current_esc=""
-have esc && current_esc="$(esc version 2>/dev/null | sed 's/^v//')"
-if [ "$current_esc" = "$ESC_VERSION" ]; then
-  log "esc ${ESC_VERSION} already installed — skipping"
-else
-  log "installing esc ${ESC_VERSION} (${ARCH})"
-  esc_tarball="esc-v${ESC_VERSION}-linux-${ARCH}.tar.gz"
-  fetch "https://github.com/pulumi/esc/releases/download/v${ESC_VERSION}/${esc_tarball}" "$tmp/$esc_tarball"
-  # Verify against the release's published checksums when available (best-effort).
-  if fetch "https://github.com/pulumi/esc/releases/download/v${ESC_VERSION}/esc-${ESC_VERSION}-checksums.txt" "$tmp/esc-sums.txt" 2>/dev/null; then
-    expected="$(grep "linux-${ARCH}.tar.gz" "$tmp/esc-sums.txt" | awk '{print $1}' | head -1)"
-    if [ -n "$expected" ]; then verify_sha256 "$tmp/$esc_tarball" "$expected"; else warn "esc checksum entry not found; skipping verification"; fi
-  else
-    warn "esc checksums unavailable; skipping verification"
-  fi
-  tar -C "$tmp" -xzf "$tmp/$esc_tarball"
-  esc_bin="$(find "$tmp" -type f -name esc | head -1)"
-  [ -n "$esc_bin" ] || die "esc binary not found in archive"
-  as_root install -m 0755 "$esc_bin" /usr/local/bin/esc
-  log "esc installed: $(esc version 2>/dev/null || echo '?')"
 fi
