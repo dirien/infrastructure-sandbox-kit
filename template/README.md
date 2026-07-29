@@ -1,15 +1,16 @@
 # Infrastructure sandbox template
 
-A prebuilt sandbox image — `docker/sandbox-templates:claude-code-docker` with the
-full IaC toolchain (Pulumi, Terraform, OpenTofu, AWS/Azure/gcloud CLIs) and
-`dirien/my-claude-apm-setup` baked in, so sandboxes start instantly with
-everything in place. This is the recommended path; the [`../kit`](../kit) mixin
-adds the network rules, Pulumi credential injection, MCP and agent context on top.
+A prebuilt sandbox image: `docker/sandbox-templates:claude-code-docker` with the
+full IaC toolchain (Pulumi, Terraform, OpenTofu, and the AWS/Azure/gcloud CLIs)
+and `dirien/my-claude-apm-setup` baked in, so sandboxes start with the tools
+already installed. This is the recommended path. The [`../kit`](../kit) mixin adds
+the network rules, the Pulumi credential injection, the MCP servers and the agent
+context on top.
 
 ## Build
 
-Build from the **repo root** (the Dockerfile needs the shared `../scripts/` tree
-in the build context):
+Build from the repo root, since the Dockerfile needs the shared `../scripts/` tree
+in the build context:
 
 ```bash
 # from the repo root
@@ -50,31 +51,32 @@ make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox:v1
 sbx run --template ghcr.io/dirien/infrastructure-sandbox:v1 --kit ../kit claude .
 ```
 
-Running the template **with** the kit is the intended combination: the image
-provides the tools (so the kit's install step is a fast sentinel no-op), and the
+Running the template together with the kit is the intended combination. The image
+provides the tools, so the kit's install step is a fast sentinel no-op, and the
 kit contributes the network allow-list, the `PULUMI_ACCESS_TOKEN` injection, the
 Pulumi MCP and the agent context.
 
 ## What's baked in
 
-- `pulumi` + `esc` in `/opt/pulumi` (symlinked onto `PATH`, with the bundled
-  `pulumi-language-*` / `pulumi-resource-*` plugins), `terraform`, `tofu`, and —
-  unless `INSTALL_CLOUDS=0` — `aws`, `az`, `gcloud`.
-- `gopls`, `golangci-lint` (in `~/.local/bin`), `typescript-language-server`,
-  `pyright` — and `csharp-ls` + the .NET SDK when built with `INSTALL_DOTNET=1`.
+- `pulumi` and `esc` in `/opt/pulumi` (symlinked onto `PATH`, with the bundled
+  `pulumi-language-*` and `pulumi-resource-*` plugins), `terraform`, `tofu`, and,
+  unless `INSTALL_CLOUDS=0`, `aws`, `az` and `gcloud`.
+- `gopls`, `golangci-lint` (in `~/.local/bin`), `typescript-language-server` and
+  `pyright`. Building with `INSTALL_DOTNET=1` adds `csharp-ls` and the .NET SDK.
 - `apm` (`/usr/local/bin/apm`) and `dirien/my-claude-apm-setup` cloned to
   `~/.claude-apm-setup`, materialized into `~/.claude` (skills, agents, rules,
-  hooks) with MCP registered at user scope in `~/.claude.json`.
+  hooks), with the MCP servers registered at user scope in `~/.claude.json`.
 - A provisioning sentinel at `~/.local/state/infrastructure-sandbox-kit/provisioned`
   so the kit's create-time install is skipped on this image.
 
-Reference build: ~6.6 GB with the cloud CLIs, ~4.2 GB with `INSTALL_CLOUDS=0`.
+Reference build: about 6.6 GB with the cloud CLIs, about 4.2 GB with
+`INSTALL_CLOUDS=0`.
 
 ## How the base was chosen
 
-`claude-code-docker` (Ubuntu 26.04) already ships Node 22, Python 3.14 (+ uv),
+`claude-code-docker` (Ubuntu 26.04) already ships Node 22, Python 3.14 (with uv),
 Java 25, Go 1.26, Docker, `git`, `gh` and Claude Code, running as `agent`
-(uid 1000) with passwordless sudo. The template only adds the IaC tooling on top;
-provisioning runs as `agent` so the APM/Claude config lands in `/home/agent`
-owned correctly. Swap `BASE` to `claude-code` (no Docker-in-Docker) if you don't
-need to build containers inside the sandbox.
+(uid 1000) with passwordless sudo. The template only adds the IaC tooling on top,
+and provisioning runs as `agent` so the APM and Claude config lands in
+`/home/agent` with the right ownership. Swap `BASE` to `claude-code` (no
+Docker-in-Docker) if you don't need to build containers inside the sandbox.
