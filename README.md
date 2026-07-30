@@ -17,8 +17,8 @@ The sandbox comes with:
   `golangci-lint`. Enabling .NET adds `csharp-ls` and the .NET SDK.
 - The Pulumi Cloud token, injected by the sandbox credential proxy. The container
   only ever sees `PULUMI_ACCESS_TOKEN=proxy-managed`.
-- Two MCP servers at user scope: `pulumi` (registry lookups, schema and code
-  validation, Neo) and `context7` (current library docs).
+- The `pulumi` MCP server at user scope (registry lookups, schema and code
+  validation, Neo).
 - The APM setup in `~/.claude` for every workspace: 23 skills, 3 subagents, the
   instruction rules, and two guardrail hooks. One blocks destructive shell
   commands; the other scans edits for secrets and formats them.
@@ -136,7 +136,7 @@ opened in the sandbox without a per-project `apm.yml`:
 | `~/.claude/agents/*` | `executor`, `librarian`, `reviewer` subagents |
 | `~/.claude/rules/*` + a managed block in `~/.claude/CLAUDE.md` | the instruction rules |
 | `~/.claude/settings.json` | the PreToolUse guard + PostToolUse secret-scan/format hooks, rewritten to absolute paths so they fire in any workspace |
-| `~/.claude.json` (user scope) | the `context7` and `pulumi` MCP servers |
+| `~/.claude.json` (user scope) | the `pulumi` MCP server |
 
 To update it later, run `git -C ~/.claude-apm-setup pull && ISK_FORCE=1 ~/.local/share/infrastructure-sandbox-kit/scripts/provision.sh`.
 
@@ -171,7 +171,7 @@ infrastructure-sandbox-kit/
 | OpenTofu | `1.12.5` | same |
 | AWS CLI v2 | `2.36.10` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
-| my-claude-apm-setup | `v0.4.0` | `ISK_APM_SETUP_REF` |
+| my-claude-apm-setup | `v0.5.0` | `ISK_APM_SETUP_REF` |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 
 `make help` lists every target. Validate with `make validate` (`sbx kit validate ./kit`).

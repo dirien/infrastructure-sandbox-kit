@@ -10,7 +10,7 @@
 #   ~/.claude/rules/*          <- the instruction rules (durable)
 #   ~/.claude/CLAUDE.md        <- a managed block importing those rules
 #   ~/.claude/settings.json    <- guardrail hooks     (via apply-agent-config.sh)
-#   ~/.claude.json mcpServers  <- context7 + pulumi   (via apply-agent-config.sh)
+#   ~/.claude.json mcpServers  <- pulumi              (via apply-agent-config.sh)
 #
 # The settings.json/.claude.json parts are re-applied on every sandbox start by
 # the kit's commands.startup step, because Docker reseeds agent config at create
@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 
 APM_REPO="${ISK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
-APM_REF="${ISK_APM_SETUP_REF:-v0.4.0}"
+APM_REF="${ISK_APM_SETUP_REF:-v0.5.0}"
 SETUP_DIR="${ISK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
 CLAUDE_HOME="$HOME/.claude"
 
