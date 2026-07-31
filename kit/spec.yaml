@@ -112,7 +112,7 @@ commands:
         # Immutable ref the provisioning scripts are fetched from (reproducible). A
         # released tag/SHA — NOT a moving branch. `sbx kit push` rewrites this to the
         # exact commit SHA when publishing to OCI (see scripts/push-kit.sh).
-        KIT_REF="v0.3.0"
+        KIT_REF="v0.5.0"
         # --- locate the provisioning scripts: baked image first, else fetch to a stable home path ---
         DIR="$HOME/.local/share/infrastructure-sandbox-kit/scripts"
         if [ ! -f "$DIR/provision.sh" ]; then

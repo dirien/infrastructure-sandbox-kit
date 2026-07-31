@@ -47,23 +47,23 @@ servers and the agent context.
 
 ### On the prebuilt template image (recommended)
 
-The image is stamped with both its version tag (`:v0.3.0`) and `:latest`.
+The image is stamped with both its version tag (`:v0.5.0`) and `:latest`.
 
 ```bash
-make load                          # build + load into sbx (as :v0.3.0 and :latest)
+make load                          # build + load into sbx (as :v0.5.0 and :latest)
 #   leaner (no cloud CLIs):  make load INSTALL_CLOUDS=0
 #   add .NET (Pulumi C#):    make load INSTALL_DOTNET=1
 
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
 
-make run                           # sbx run --template infrastructure-sandbox:v0.3.0 --kit ./kit claude .
+make run                           # sbx run --template infrastructure-sandbox:v0.5.0 --kit ./kit claude .
 ```
 
-Or push to a registry (as `:v0.3.0` and `:latest`) and point `--template` at it:
+Or push to a registry (as `:v0.5.0` and `:latest`) and point `--template` at it:
 
 ```bash
-make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox        # + VERSION=v0.3.0 to override
-sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.3.0 --kit ./kit claude .
+make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox        # + VERSION=v0.5.0 to override
+sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.5.0 --kit ./kit claude .
 ```
 
 ### Kit only, no image build
@@ -94,7 +94,7 @@ On the stock `claude` image the kit installs the toolchain at create time, which
 takes a few minutes.
 
 Reproducibility: the kit fetches its provisioning scripts from `KIT_REF` in
-`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.3.0`), not a
+`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.5.0`), not a
 moving branch — so the scripts don't change under you even if you fetch the kit
 from `main`. `make publish-kit` goes further and rewrites `KIT_REF` to the exact
 commit SHA in the OCI artifact. To pin a git run to a different release, use
