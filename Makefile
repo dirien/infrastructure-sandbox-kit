@@ -25,7 +25,7 @@ OPENTOFU_VERSION   ?= 1.12.5
 AWSCLI_VERSION     ?= 2.36.10
 AZ_APT_DIST        ?= noble
 INSTALL_CLOUDS     ?= 1
-APM_SETUP_REF      ?= v0.5.0
+APM_SETUP_REF      ?= v0.6.0
 INSTALL_DOTNET     ?= 0
 DOTNET_CHANNEL     ?= 8.0
 
