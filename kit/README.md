@@ -32,11 +32,12 @@ sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com
 - `requires.agent: claude`: the mixin pins the base agent it layers onto — the
   APM setup and hooks are Claude-specific.
 - `permissions.network.allow`: the Pulumi, Terraform and OpenTofu download and
-  registry hosts, the AWS/Azure/Google installer and apt hosts, GitHub, the
-  language registries (npm, PyPI, Go proxy), the APM installer, the MCP hosts, and
-  a cloud control-plane starter set (AWS STS, Azure ARM and login,
-  `*.googleapis.com`). Add the rest of your cloud and region endpoints here; see
-  [`../docs/network.md`](../docs/network.md).
+  registry hosts, the AWS/Azure/Google installer and apt hosts, the Ubuntu and
+  Docker apt mirrors (plain `apt-get install` works in the sandbox), GitHub
+  (which also serves the APM CLI releases), the language registries (npm, PyPI,
+  Go proxy), the MCP hosts, and a cloud control-plane starter set (AWS STS,
+  Azure ARM and login, `*.googleapis.com`). Add the rest of your cloud and
+  region endpoints here; see [`../docs/network.md`](../docs/network.md).
 - `credentials`: the Pulumi token, declared as service `pulumi` with a
   proxy-managed `apiKey` that injects `Authorization: token <PAT>` on
   `api.pulumi.com`; the container sees only the proxy-managed placeholder in

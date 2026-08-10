@@ -38,6 +38,13 @@ permissions:
       - packages.microsoft.com
       - packages.cloud.google.com
       - dl.google.com
+      # OS packages: the base image's apt sources (Ubuntu + pre-added Docker
+      # repo, GPG-signed), so a plain `apt-get update && apt-get install`
+      # works in the sandbox. ports.ubuntu.com serves the arm64 packages.
+      - archive.ubuntu.com
+      - security.ubuntu.com
+      - ports.ubuntu.com
+      - download.docker.com
       # GitHub: Pulumi/OpenTofu binaries, provider plugins, gh, the APM CLI
       # release tarballs and the APM skill repos
       - github.com
