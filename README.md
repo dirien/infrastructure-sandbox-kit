@@ -189,7 +189,7 @@ infrastructure-sandbox-kit/
 
 | Component | Default | Where to change |
 |---|---|---|
-| Pulumi CLI | `3.255.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
+| Pulumi CLI | `3.256.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Terraform | `1.15.8` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
 | OpenTofu | `1.12.5` | same |
 | kubectl | `1.36.3` | same |
