@@ -6,12 +6,14 @@ Pulumi credential, the environment defaults, the setup steps and the agent
 instructions. One `--kit` flag brings up the whole IaC workstation:
 
 ```bash
-sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.7.0 .
+sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.7.0 infrastructure-sandbox .
 ```
 
-A sandbox kit defines the agent itself, so there is no separate agent name to
-pass. If your `sbx` build still expects one, use the kit's `name`, which is
-`infrastructure-sandbox`. To see what the kit declares:
+A sandbox kit defines its own agent, named after the kit, and `sbx run`
+requires exactly that agent name: `infrastructure-sandbox` (passing `claude`,
+or leaving the name out, is an error). The runtime inside is still Claude
+Code, because that is what the pinned image ships. To see what the kit
+declares:
 
 ```bash
 sbx kit inspect ghcr.io/dirien/infrastructure-sandbox-kit:v0.7.0 --json
@@ -19,8 +21,8 @@ sbx kit inspect ghcr.io/dirien/infrastructure-sandbox-kit:v0.7.0 --json
 
 ## Which artifact do I want?
 
-- This sandbox kit: one reference that brings the image and the rules together,
-  with nothing else to remember.
+- This sandbox kit: one reference that brings the image and the rules together;
+  its agent name is `infrastructure-sandbox`.
 - [`../kit`](../kit) mixin plus `--template`: you pick the image yourself, for
   example a locally built variant from `make load`.
 - [`../kit`](../kit) mixin alone: zero build. The stock `claude` image installs

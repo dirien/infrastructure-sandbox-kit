@@ -54,13 +54,13 @@ defines the agent itself and pins the image (see [`sandbox-kit/`](sandbox-kit)).
 
 ```bash
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
-sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.7.0 .
+sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.7.0 infrastructure-sandbox .
 ```
 
-The kit names the template image and carries every rule, so there is nothing
-else to pass. A sandbox kit defines the agent itself; if your `sbx` build still
-expects an agent name, use `infrastructure-sandbox`. Details in
-[`sandbox-kit/`](sandbox-kit).
+The kit names the template image and carries every rule. A sandbox kit defines
+its own agent, named after the kit, and `sbx run` expects exactly that agent
+name (`infrastructure-sandbox`; it still runs Claude Code, since that is what
+the image ships). Details in [`sandbox-kit/`](sandbox-kit).
 
 ### On the prebuilt template image
 
