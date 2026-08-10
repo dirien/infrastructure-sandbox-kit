@@ -6,10 +6,11 @@ how a stored secret is injected. `sbx secret set` reads the value interactively
 
 ## Pulumi Cloud token (wired by this kit)
 
-The kit maps `api.pulumi.com` to the `pulumi` service (`network.serviceDomains`)
-and injects `Authorization: token <PAT>` (`network.serviceAuth`), sourced from
-`PULUMI_ACCESS_TOKEN` (`credentials.sources`) and masked in the container as a
-proxy-managed placeholder (`environment.proxyManaged`). Store the token:
+The kit declares a `pulumi` credential (`credentials[].service` in the v2 spec)
+whose `apiKey` block injects `Authorization: token <PAT>` on `api.pulumi.com`;
+`proxyManaged: true` masks `PULUMI_ACCESS_TOKEN` in the container as a
+proxy-managed placeholder. The kit only declares the requirement — the value is
+bound from the host's secret store. Store the token:
 
 ```bash
 # interactive (prompts, no echo):
@@ -66,7 +67,7 @@ You can also authenticate the CLIs directly in-session:
 - GCP: `gcloud auth activate-service-account --key-file=<path>`.
 - AWS: `aws configure` or `aws sso login`.
 
-Allow the relevant management/auth hosts in the kit's `network.allowedDomains`
+Allow the relevant management/auth hosts in the kit's `permissions.network.allow`
 (see [`network.md`](network.md)).
 
 ### Option C: proxy-injected header credentials

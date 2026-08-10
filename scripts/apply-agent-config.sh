@@ -4,7 +4,7 @@
 #
 # Docker reseeds ~/.claude/settings.json and ~/.claude.json when it creates a
 # sandbox, which wipes anything the image baked in. So this runs as a
-# commands.startup step (after that reseed, on every start) to keep the hooks and
+# setup.startup step (after that reseed, on every start) to keep the hooks and
 # MCP servers present. It is idempotent: hooks are deduped and MCP servers are
 # removed-then-added. Skills, subagents and rules under ~/.claude survive the
 # reseed and are placed by setup-apm-home.sh.

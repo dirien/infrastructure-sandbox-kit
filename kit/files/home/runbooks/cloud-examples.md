@@ -2,7 +2,7 @@
 
 Unlike the `random`-provider runbooks, these touch real clouds — so they need
 credentials (see `docs/credentials.md`) **and** the relevant endpoints added to
-the kit's `network.allowedDomains` (see `docs/network.md`). Snippets only;
+the kit's `permissions.network.allow` (see `docs/network.md`). Snippets only;
 copy into a workspace project.
 
 ## AWS S3 bucket
