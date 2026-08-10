@@ -11,6 +11,7 @@ the extra cloud and region endpoints and provider plugins you use.
 |---|---|---|
 | Pulumi | `api.pulumi.com`, `get.pulumi.com`, `mcp.ai.pulumi.com` | state/API, plugin/CLI downloads, hosted MCP |
 | Terraform / OpenTofu | `releases.hashicorp.com`, `registry.terraform.io`, `registry.opentofu.org`, `get.opentofu.org` | CLI downloads + provider registries |
+| Kubernetes | `dl.k8s.io`, `cdn.dl.k8s.io`, `get.helm.sh` | kubectl binary (`dl.k8s.io` redirects to its CDN) + Helm tarballs; your cluster API endpoints and chart registries are yours to add |
 | Cloud CLIs | `awscli.amazonaws.com`, `packages.microsoft.com`, `packages.cloud.google.com`, `dl.google.com` | AWS CLI zip + Azure/gcloud GPG-signed apt repos |
 | OS packages | `archive.ubuntu.com`, `security.ubuntu.com`, `ports.ubuntu.com`, `download.docker.com` | plain `apt-get update`/`install` in the sandbox (base Ubuntu sources + the pre-added Docker repo; `ports` serves arm64) |
 | Cloud control-plane (starters) | `sts.amazonaws.com`, `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`, `accounts.google.com`, `oauth2.googleapis.com`, `*.googleapis.com` | basic identity, ARM, and `gcloud auth`; extend per provider and region |

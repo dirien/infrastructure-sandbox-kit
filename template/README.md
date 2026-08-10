@@ -34,6 +34,8 @@ Build args (all pinned; override with `--build-arg`):
 | `ISK_PULUMI_VERSION` | `3.255.0` | Pulumi CLI |
 | `ISK_TERRAFORM_VERSION` | `1.15.8` | Terraform |
 | `ISK_OPENTOFU_VERSION` | `1.12.5` | OpenTofu |
+| `ISK_KUBECTL_VERSION` | `1.36.3` | kubectl |
+| `ISK_HELM_VERSION` | `4.2.3` | Helm |
 | `ISK_AWSCLI_VERSION` | `2.36.10` | AWS CLI v2 |
 | `ISK_AZ_APT_DIST` | `noble` | Microsoft azure-cli apt dist (no `resolute`/26.04 yet) |
 | `ISK_INSTALL_CLOUDS` | `1` | `0` drops the AWS/Azure/gcloud CLIs |
@@ -65,8 +67,8 @@ Pulumi MCP and the agent instructions.
 ## What's baked in
 
 - `pulumi` in `/opt/pulumi` (symlinked onto `PATH`, with the bundled
-  `pulumi-language-*` and `pulumi-resource-*` plugins), `terraform`, `tofu`, and,
-  unless `INSTALL_CLOUDS=0`, `aws`, `az` and `gcloud`.
+  `pulumi-language-*` and `pulumi-resource-*` plugins), `terraform`, `tofu`,
+  `kubectl`, `helm`, and, unless `INSTALL_CLOUDS=0`, `aws`, `az` and `gcloud`.
 - `gopls`, `golangci-lint` (in `~/.local/bin`), `typescript-language-server` and
   `pyright`. Building with `INSTALL_DOTNET=1` adds `csharp-ls` and the .NET SDK.
 - `apm` (`/usr/local/bin/apm`) and `dirien/my-claude-apm-setup` cloned to
