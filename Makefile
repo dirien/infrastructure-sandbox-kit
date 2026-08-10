@@ -8,7 +8,7 @@
 #   make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox
 IMAGE       ?= infrastructure-sandbox
 # Version tag for the image + the published kit. Defaults to the latest git tag.
-VERSION     ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.6.0)
+VERSION     ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.6.1)
 DOCKERFILE  ?= template/Dockerfile
 PLATFORM    ?=                      # e.g. linux/arm64 or linux/amd64,linux/arm64
 KIT         ?= ./kit
@@ -25,9 +25,8 @@ OPENTOFU_VERSION   ?= 1.12.5
 AWSCLI_VERSION     ?= 2.36.10
 AZ_APT_DIST        ?= noble
 INSTALL_CLOUDS     ?= 1
-APM_SETUP_REF      ?= v0.6.0
-APM_VERSION        ?= 0.26.0
-HUMANIZER_REF      ?= 1b48564898e999219882660237fde01bf4843a0f
+APM_SETUP_REF      ?= v0.6.1
+APM_VERSION        ?= 0.28.0
 INSTALL_DOTNET     ?= 0
 DOTNET_CHANNEL     ?= 8.0
 
@@ -40,7 +39,6 @@ BUILD_ARGS = \
   --build-arg ISK_INSTALL_CLOUDS=$(INSTALL_CLOUDS) \
   --build-arg ISK_APM_SETUP_REF=$(APM_SETUP_REF) \
   --build-arg ISK_APM_VERSION=$(APM_VERSION) \
-  --build-arg ISK_HUMANIZER_REF=$(HUMANIZER_REF) \
   --build-arg ISK_INSTALL_DOTNET=$(INSTALL_DOTNET) \
   --build-arg ISK_DOTNET_CHANNEL=$(DOTNET_CHANNEL)
 

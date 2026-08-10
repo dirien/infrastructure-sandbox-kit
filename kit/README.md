@@ -13,7 +13,7 @@ and APM) at sandbox-create time.
 sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit" claude .
 
 # On the baked template (install is a fast no-op; kit just wires net/creds/MCP):
-sbx run --template infrastructure-sandbox:v0.6.0 --kit . claude .
+sbx run --template infrastructure-sandbox:v0.6.1 --kit . claude .
 
 # Validate / inspect:
 sbx kit validate ./            # or:  make validate   (from repo root)
@@ -71,12 +71,11 @@ aren't set yet when the install hook runs:
 
 - `ISK_PULUMI_VERSION`, `ISK_TERRAFORM_VERSION`,
   `ISK_OPENTOFU_VERSION`, `ISK_AWSCLI_VERSION`, `ISK_INSTALL_CLOUDS`,
-  `ISK_APM_SETUP_REF`, `ISK_APM_VERSION`, `ISK_HUMANIZER_REF`,
-  `ISK_INSTALL_DOTNET`: edit inline in `spec.yaml`. Keep `ISK_APM_VERSION` at
-  `0.26.0` — apm 0.27+ rejects root-level skill dependencies
-  (`blader/humanizer`) and breaks `apm install --frozen`. The humanizer skill is
-  additionally installed straight into `~/.claude/skills` at `ISK_HUMANIZER_REF`,
-  so the skill itself never depends on apm's package handling.
+  `ISK_APM_SETUP_REF`, `ISK_APM_VERSION`, `ISK_INSTALL_DOTNET`: edit inline in
+  `spec.yaml`. The apm CLI is pinned and SHA256-verified like the other core
+  tools — bump `ISK_APM_VERSION` deliberately (0.27.0 silently changed dependency
+  resolution and broke provisioning until my-claude-apm-setup v0.6.1 vendored
+  the humanizer skill locally).
 - `KIT_REF`: the ref the provisioning scripts are fetched from. It defaults to
   `main`. For reproducible zero-build runs, pin the kit URL (`…#dir=kit&ref=<tag>`)
   and set the matching `KIT_REF` (`make pin REF=<tag>` from the repo root does that).
