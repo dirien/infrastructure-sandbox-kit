@@ -11,6 +11,8 @@ The sandbox comes with:
 - Pulumi CLI, Terraform, and OpenTofu, each pinned to a version and verified by
   checksum or signature. Pulumi ships with its bundled language plugins, and ESC is
   available through `pulumi env` (the standalone `esc` CLI was retired in 2026).
+- kubectl and Helm, pinned and checksum-verified the same way, for the
+  Kubernetes side of IaC work.
 - The AWS CLI v2, Azure CLI and gcloud. Set `INSTALL_CLOUDS=0` to skip them.
 - The language runtimes from the base image (Go, Node, Python, Java) plus the
   language servers `gopls`, `typescript-language-server`, `pyright` and
@@ -125,8 +127,8 @@ cd ~/runbooks/terraform-random && terraform init && terraform plan
 ## Install hardening
 
 The core IaC tools are installed from a pinned version and verified by checksum
-or signature, no `curl | sh`. That covers Pulumi and ESC, Terraform, OpenTofu and
-the AWS CLI (pinned + SHA256), Azure CLI and gcloud (GPG-signed vendor apt
+or signature, no `curl | sh`. That covers Pulumi and ESC, Terraform, OpenTofu,
+kubectl and Helm, the AWS CLI (pinned + SHA256), Azure CLI and gcloud (GPG-signed vendor apt
 repos), and the APM CLI (pinned release tarball + published SHA256 — apm's
 behaviour shifts between releases, so installing "latest" is a hazard).
 The language servers and `golangci-lint` use their vendors' installers
@@ -137,6 +139,8 @@ The language servers and `golangci-lint` use their vendors' installers
 | Pulumi CLI | GitHub release tarball | pinned per-arch SHA256 |
 | Terraform | HashiCorp releases | published SHA256SUMS |
 | OpenTofu | GitHub release | published SHA256SUMS |
+| kubectl | dl.k8s.io release binary | published per-binary SHA256 |
+| Helm | get.helm.sh tarball | published SHA256 |
 | AWS CLI v2 | official installer zip | pinned per-arch SHA256 |
 | Azure CLI | Microsoft apt repo | GPG-signed (apt) |
 | gcloud | Google Cloud apt repo | GPG-signed (apt) |
@@ -188,6 +192,8 @@ infrastructure-sandbox-kit/
 | Pulumi CLI | `3.255.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Terraform | `1.15.8` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
 | OpenTofu | `1.12.5` | same |
+| kubectl | `1.36.3` | same |
+| Helm | `4.2.3` | same |
 | AWS CLI v2 | `2.36.10` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
 | my-claude-apm-setup | `v0.6.2` | `ISK_APM_SETUP_REF` |

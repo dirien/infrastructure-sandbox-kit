@@ -36,6 +36,10 @@ permissions:
       - registry.terraform.io
       - registry.opentofu.org
       - get.opentofu.org
+      # Kubernetes: kubectl (dl.k8s.io redirects to its CDN) + Helm downloads
+      - dl.k8s.io
+      - cdn.dl.k8s.io
+      - get.helm.sh
       # Cloud CLIs: installer downloads + GPG-signed apt repos
       - awscli.amazonaws.com
       - packages.microsoft.com
@@ -112,6 +116,8 @@ setup:
         export ISK_PULUMI_VERSION="3.255.0"
         export ISK_TERRAFORM_VERSION="1.15.8"
         export ISK_OPENTOFU_VERSION="1.12.5"
+        export ISK_KUBECTL_VERSION="1.36.3"
+        export ISK_HELM_VERSION="4.2.3"
         export ISK_AWSCLI_VERSION="2.36.10"
         export ISK_AZ_APT_DIST="noble"       # Microsoft azure-cli repo dist (no 'resolute'/26.04 yet)
         export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
@@ -164,6 +170,8 @@ agentInstructions:
       and `pulumi env` (Pulumi ESC; the standalone `esc` CLI was retired in 2026) work
       without a token ever entering the container.
     - `terraform` and `tofu` (OpenTofu) — drop-in HCL engines.
+    - `kubectl` and `helm` — the Kubernetes CLI and package manager. Cluster
+      endpoints are NOT in the egress allow-list; add yours (see docs/network.md).
     - `aws`, `az`, `gcloud` — cloud CLIs (installed unless the kit was built/run
       with ISK_INSTALL_CLOUDS=0).
     - Language runtimes Go, Node.js, Python (plus Java; .NET when enabled) with

@@ -33,8 +33,8 @@ sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com
 
 - `requires.agent: claude`: the mixin pins the base agent it layers onto — the
   APM setup and hooks are Claude-specific.
-- `permissions.network.allow`: the Pulumi, Terraform and OpenTofu download and
-  registry hosts, the AWS/Azure/Google installer and apt hosts, the Ubuntu and
+- `permissions.network.allow`: the Pulumi, Terraform/OpenTofu and
+  kubectl/Helm download and registry hosts, the AWS/Azure/Google installer and apt hosts, the Ubuntu and
   Docker apt mirrors (plain `apt-get install` works in the sandbox), GitHub
   (which also serves the APM CLI releases), the language registries (npm, PyPI,
   Go proxy), the MCP hosts, and a cloud control-plane starter set (AWS STS,
