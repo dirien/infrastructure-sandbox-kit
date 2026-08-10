@@ -34,12 +34,13 @@ The sandbox comes with:
 
 Both run the built-in `claude` agent, so Claude's own auth is untouched, and both
 apply the same `kit/` mixin for the network rules, the Pulumi credential, the MCP
-servers and the agent context.
+servers and the agent instructions.
 
 ## Prerequisites
 
-- [`sbx`](https://github.com/docker/sbx-releases) and Docker on your host. The
-  sandbox CLI is a host tool. Kits are experimental, so keep `sbx` current.
+- [`sbx`](https://github.com/docker/sbx-releases) ≥ 0.38.0 and Docker on your
+  host. The sandbox CLI is a host tool. Kits are experimental, and this kit uses
+  the v2 spec schema that landed in 0.38.0, so keep `sbx` current.
 - A Pulumi Cloud access token, and whatever cloud credentials your stacks need
   (see [`docs/credentials.md`](docs/credentials.md)).
 
@@ -47,23 +48,23 @@ servers and the agent context.
 
 ### On the prebuilt template image (recommended)
 
-The image is stamped with both its version tag (`:v0.5.0`) and `:latest`.
+The image is stamped with both its version tag (`:v0.6.0`) and `:latest`.
 
 ```bash
-make load                          # build + load into sbx (as :v0.5.0 and :latest)
+make load                          # build + load into sbx (as :v0.6.0 and :latest)
 #   leaner (no cloud CLIs):  make load INSTALL_CLOUDS=0
 #   add .NET (Pulumi C#):    make load INSTALL_DOTNET=1
 
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
 
-make run                           # sbx run --template infrastructure-sandbox:v0.5.0 --kit ./kit claude .
+make run                           # sbx run --template infrastructure-sandbox:v0.6.0 --kit ./kit claude .
 ```
 
-Or push to a registry (as `:v0.5.0` and `:latest`) and point `--template` at it:
+Or push to a registry (as `:v0.6.0` and `:latest`) and point `--template` at it:
 
 ```bash
-make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox        # + VERSION=v0.5.0 to override
-sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.5.0 --kit ./kit claude .
+make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox        # + VERSION=v0.6.0 to override
+sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.6.0 --kit ./kit claude .
 ```
 
 ### Kit only, no image build
@@ -94,7 +95,7 @@ On the stock `claude` image the kit installs the toolchain at create time, which
 takes a few minutes.
 
 Reproducibility: the kit fetches its provisioning scripts from `KIT_REF` in
-`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.5.0`), not a
+`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.6.0`), not a
 moving branch — so the scripts don't change under you even if you fetch the kit
 from `main`. `make publish-kit` goes further and rewrites `KIT_REF` to the exact
 commit SHA in the OCI artifact. To pin a git run to a different release, use
@@ -145,7 +146,7 @@ To update it later, run `git -C ~/.claude-apm-setup pull && ISK_FORCE=1 ~/.local
 
 ```
 infrastructure-sandbox-kit/
-├── kit/spec.yaml              # the kit: kind: mixin, schemaVersion "1"
+├── kit/spec.yaml              # the kit: kind: mixin, schemaVersion "2"
 ├── template/Dockerfile        # the baked image (FROM claude-code-docker)
 ├── scripts/                   # canonical provisioning, shared by both paths
 │   ├── lib.sh                 #   shared helpers (arch, fetch, verify)
@@ -156,7 +157,7 @@ infrastructure-sandbox-kit/
 │   ├── setup-apm-home.sh      #   APM + my-claude-apm-setup into ~/.claude
 │   ├── apply-agent-config.sh  #   (re)apply guardrail hooks + MCP (idempotent)
 │   ├── provision.sh           #   orchestrator (sentinel-guarded, idempotent)
-│   ├── startup.sh             #   commands.startup: re-apply config + retry missing clouds
+│   ├── startup.sh             #   setup.startup: re-apply config + retry missing clouds
 │   └── push-kit.sh            #   publish the kit to an OCI registry
 ├── docs/credentials.md        # binding Pulumi / cloud creds
 ├── docs/network.md            # extending the allow-list for your clouds
@@ -196,17 +197,19 @@ collection (Firecrawl, mem0, SurrealDB, Grafana, Dagger, VS Code, and others):
 ## Notes and limitations
 
 - Cloud endpoints beyond the starters must be added per provider and region to
-  the `network.allowedDomains` list in `kit/spec.yaml`. Docker's policy syntax
-  supports exact hosts, `*.host`, `**.host` and CIDR ranges. See
-  [`docs/network.md`](docs/network.md).
+  the `permissions.network.allow` list in `kit/spec.yaml`. Kit-level enforcement
+  covers exact hosts, `host:port` and single-label `*.host` patterns; `**.host`
+  and CIDR parse but aren't enforced yet. See [`docs/network.md`](docs/network.md).
 - Cloud auth is not baked in. `aws`, `az` and `gcloud` need credentials supplied
   at run time or through Pulumi ESC. AWS uses SigV4, so its credentials stay in
   the container. See [`docs/credentials.md`](docs/credentials.md).
-- Kits are experimental. The kit targets the current `sbx` v1 grammar
-  (`network.allowedDomains`, `commands`, `credentials.sources`, `agentContext`)
-  from Docker's [kit reference](https://docs.docker.com/ai/sandboxes/customize/kit-reference/).
-  `sbx` is a host tool that isn't available in every environment, so validate on
-  your host with `sbx kit validate ./kit`.
+- Kits are experimental. The kit targets the kit-spec v2 grammar introduced in
+  Docker Sandboxes 0.38.0 (`schemaVersion: "2"`: `permissions.network`,
+  `credentials`, `setup`, `agentInstructions`) from Docker's
+  [kit reference](https://docs.docker.com/ai/sandboxes/customize/kit-reference/).
+  The v2 loader is strict — leftover v1 fields are decode errors — while v1 kits
+  still load through a legacy path. `sbx` is a host tool that isn't available in
+  every environment, so validate on your host with `sbx kit validate ./kit`.
 
 ## License
 

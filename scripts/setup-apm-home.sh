@@ -13,7 +13,7 @@
 #   ~/.claude.json mcpServers  <- pulumi              (via apply-agent-config.sh)
 #
 # The settings.json/.claude.json parts are re-applied on every sandbox start by
-# the kit's commands.startup step, because Docker reseeds agent config at create
+# the kit's setup.startup step, because Docker reseeds agent config at create
 # time. This script does the one-time install and the durable file placement, then
 # calls apply-agent-config.sh once so the config is present right after provisioning.
 #
@@ -82,7 +82,7 @@ awk -v b="$BEGIN" -v e="$END" '
 } > "$CLAUDE_MD"
 rm -f "$tmp_md"
 
-# --- 6. Apply guardrail hooks + MCP (shared with the commands.startup step) --
+# --- 6. Apply guardrail hooks + MCP (shared with the setup.startup step) --
 # Runs the same idempotent apply that fires on every sandbox start, so the hooks
 # and MCP servers are present right after provisioning too.
 ISK_APM_SETUP_DIR="$SETUP_DIR" bash "$SCRIPT_DIR/apply-agent-config.sh"

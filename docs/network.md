@@ -1,7 +1,7 @@
 # Network allow-list
 
 Docker Sandboxes egress is default-deny: only hosts in the kit's
-`network.allowedDomains` (composed with the base agent's) are reachable. This
+`permissions.network.allow` (composed with the base agent's) are reachable. This
 kit ships the hosts that its own provisioning and the core IaC flow need. You add
 the extra cloud and region endpoints and provider plugins you use.
 
@@ -35,20 +35,25 @@ Docker's network policy supports these resource patterns (per
 | CIDR range | `10.0.0.0/8`, `2001:db8::/32` | IPv4 and IPv6 |
 
 `example.com` and `*.example.com` don't cover each other; list both if you need
-the root and its subdomains. A kit's `network.allowedDomains` is the kit's own
+the root and its subdomains. A kit's `permissions.network.allow` is the kit's own
 egress list; it is distinct from (and composed with) the organization- and
 local-level governance policy rules that use this same syntax.
 
+One kit-spec v2 caveat: in the kit's list only exact hosts, `host:port` and
+single-label `*.host` patterns are enforced. `**.host` and CIDR entries parse
+but don't open egress (yet), so express multi-level needs as explicit hosts or
+single-label wildcards — or put them in governance policy, where they do work.
+
 Middle-position wildcards like `bedrock-runtime.*.amazonaws.com` aren't part of
-the format. For AWS regional endpoints, prefer `**.amazonaws.com` or list the
-regions you use.
+the format. For AWS regional endpoints in the kit's list, name the regional
+hosts you use (`**.amazonaws.com` only takes effect in governance policy).
 
 ## Cloud provider starters
 
 The basic identity and control-plane hosts above are already allowed, so
 `aws sts get-caller-identity`, `az login` and `gcloud auth` work without extra
 setup. For real work you still need the regional service and object-storage
-endpoints your stacks call. Add them to `network.allowedDomains` in
+endpoints your stacks call. Add them to `permissions.network.allow` in
 `kit/spec.yaml` and recreate the sandbox.
 
 ```yaml
@@ -91,7 +96,7 @@ Run once, then read the proxy log. Every blocked row is a host to add:
 sbx policy log <sandbox-name>          # HOST column lists blocked (and allowed) requests
 ```
 
-Add the host to `network.allowedDomains`, recreate the sandbox, and repeat
+Add the host to `permissions.network.allow`, recreate the sandbox, and repeat
 until the blocked list is empty. Provider plugins download on first use from
 GitHub or `get.pulumi.com` (already allowed); a plugin that pulls from a provider
 CDN shows up here too.

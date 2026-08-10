@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# startup.sh — the kit's commands.startup entrypoint; runs on every sandbox start.
+# startup.sh — the kit's setup.startup entrypoint; runs on every sandbox start.
 #   1. Re-apply the APM guardrail hooks + MCP servers (Docker reseeds Claude's agent
 #      config at create time, so this keeps them present).
 #   2. Retry any cloud CLI that isn't installed yet. Cloud installs are per-component

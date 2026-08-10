@@ -8,7 +8,7 @@
 # WARNS, so a flaky vendor repo never blocks sandbox creation. Completion is tracked
 # by the tool being present at the RIGHT version (AWS is checked against the pinned
 # version, not just "an aws exists"), and anything missing/stale is retried by the
-# kit's commands.startup step. Safe to run repeatedly; it converges. Set
+# kit's setup.startup step. Safe to run repeatedly; it converges. Set
 # ISK_INSTALL_CLOUDS=0 to skip clouds.
 #
 # NOTE on error handling: each install runs in a plain subshell `( install_x ) || warn`.
