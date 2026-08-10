@@ -25,13 +25,30 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 APM_REPO="${ISK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
 APM_REF="${ISK_APM_SETUP_REF:-v0.6.0}"
+APM_VERSION="${ISK_APM_VERSION:-0.26.0}"
 SETUP_DIR="${ISK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
 CLAUDE_HOME="$HOME/.claude"
 
-# --- 1. APM CLI ------------------------------------------------------------
-if ! have apm; then
-  log "installing APM CLI"
-  curl -fsSL https://aka.ms/apm-unix | sh
+# --- 1. APM CLI (pinned + SHA256-verified) ---------------------------------
+# Never install "latest": apm >= 0.27.0 requires every dependency to carry its
+# own apm.yml manifest and rejects root-level skill repos (blader/humanizer),
+# which breaks `apm install --frozen` for the pinned setup. 0.26.0 is the last
+# release that resolves the v0.6.0 lockfile.
+if have apm && apm --version 2>/dev/null | grep -qF " ${APM_VERSION} "; then
+  log "apm ${APM_VERSION} already installed"
+else
+  apm_asset="apm-linux-$(apm_arch).tar.gz"
+  apm_url="https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/${apm_asset}"
+  apm_tmp="$(mktemp -d)"
+  log "installing APM CLI ${APM_VERSION} (${apm_asset})"
+  fetch "$apm_url" "$apm_tmp/$apm_asset"
+  fetch "$apm_url.sha256" "$apm_tmp/$apm_asset.sha256"
+  verify_from_sums "$apm_tmp/$apm_asset" "$apm_asset" "$apm_tmp/$apm_asset.sha256"
+  as_root rm -rf /usr/local/lib/apm-cli
+  as_root mkdir -p /usr/local/lib/apm-cli
+  as_root tar -xzf "$apm_tmp/$apm_asset" -C /usr/local/lib/apm-cli --strip-components=1
+  as_root ln -sf /usr/local/lib/apm-cli/apm /usr/local/bin/apm
+  rm -rf "$apm_tmp"
 fi
 have apm || die "apm not on PATH after install"
 
@@ -57,6 +74,23 @@ mkdir -p "$CLAUDE_HOME/skills" "$CLAUDE_HOME/agents" "$CLAUDE_HOME/rules"
 [ -d "$SETUP_DIR/.claude/rules" ]  && cp -a "$SETUP_DIR/.claude/rules/."  "$CLAUDE_HOME/rules/"
 [ -f "$SETUP_DIR/.lsp.json" ]      && cp -f "$SETUP_DIR/.lsp.json" "$CLAUDE_HOME/.lsp.json"
 log "mirrored $(find "$CLAUDE_HOME/skills" -maxdepth 1 -mindepth 1 -type d | wc -l) skills, $(find "$CLAUDE_HOME/agents" -maxdepth 1 -name '*.md' | wc -l) agents into ${CLAUDE_HOME}"
+
+# --- 4b. Humanizer skill straight into the agent home ----------------------
+# blader/humanizer keeps SKILL.md at its repo ROOT (no apm.yml), which apm
+# >= 0.27 refuses to resolve as a dependency. Install it directly into
+# ~/.claude/skills like the other skills, pinned to the same commit the
+# setup's lockfile pins, so the skill's presence never depends on how apm
+# treats root-level packages.
+HUMANIZER_REF="${ISK_HUMANIZER_REF:-1b48564898e999219882660237fde01bf4843a0f}"
+if [ ! -f "$CLAUDE_HOME/skills/humanizer/SKILL.md" ] || [ "${ISK_FORCE:-0}" = "1" ]; then
+  log "installing humanizer skill @ ${HUMANIZER_REF} into ${CLAUDE_HOME}/skills/humanizer"
+  hum_tmp="$(mktemp -d)"
+  fetch "https://codeload.github.com/blader/humanizer/tar.gz/${HUMANIZER_REF}" "$hum_tmp/humanizer.tar.gz"
+  tar -xzf "$hum_tmp/humanizer.tar.gz" -C "$hum_tmp"
+  mkdir -p "$CLAUDE_HOME/skills/humanizer"
+  cp -a "$hum_tmp/humanizer-${HUMANIZER_REF}/." "$CLAUDE_HOME/skills/humanizer/"
+  rm -rf "$hum_tmp"
+fi
 
 # --- 5. Managed block in ~/.claude/CLAUDE.md importing the rules -----------
 CLAUDE_MD="$CLAUDE_HOME/CLAUDE.md"

@@ -58,6 +58,15 @@ aws_arch() {
   esac
 }
 
+# apm_arch — the APM release-artifact arch token: x86_64 | arm64.
+apm_arch() {
+  case "$(dpkg --print-architecture 2>/dev/null || uname -m)" in
+    amd64|x86_64) echo "x86_64" ;;
+    arm64|aarch64) echo "arm64" ;;
+    *) die "unsupported architecture (expected amd64/x86_64 or arm64/aarch64)" ;;
+  esac
+}
+
 # fetch <url> <dest> — HTTPS-only download with retries; fails on any HTTP error.
 fetch() {
   curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --retry-delay 2 -o "$2" "$1"

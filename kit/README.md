@@ -71,7 +71,12 @@ aren't set yet when the install hook runs:
 
 - `ISK_PULUMI_VERSION`, `ISK_TERRAFORM_VERSION`,
   `ISK_OPENTOFU_VERSION`, `ISK_AWSCLI_VERSION`, `ISK_INSTALL_CLOUDS`,
-  `ISK_APM_SETUP_REF`, `ISK_INSTALL_DOTNET`: edit inline in `spec.yaml`.
+  `ISK_APM_SETUP_REF`, `ISK_APM_VERSION`, `ISK_HUMANIZER_REF`,
+  `ISK_INSTALL_DOTNET`: edit inline in `spec.yaml`. Keep `ISK_APM_VERSION` at
+  `0.26.0` — apm 0.27+ rejects root-level skill dependencies
+  (`blader/humanizer`) and breaks `apm install --frozen`. The humanizer skill is
+  additionally installed straight into `~/.claude/skills` at `ISK_HUMANIZER_REF`,
+  so the skill itself never depends on apm's package handling.
 - `KIT_REF`: the ref the provisioning scripts are fetched from. It defaults to
   `main`. For reproducible zero-build runs, pin the kit URL (`…#dir=kit&ref=<tag>`)
   and set the matching `KIT_REF` (`make pin REF=<tag>` from the repo root does that).

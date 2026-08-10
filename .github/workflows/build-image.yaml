@@ -2,9 +2,10 @@ name: Build template image
 
 # Build the baked template image and push it to GHCR. This image is large
 # (~6.6 GB with the cloud CLIs), so it only runs on version tags or on demand —
-# not on every push. Defaults to linux/amd64; set platforms to
-# "linux/amd64,linux/arm64" for a multi-arch build (slower: arm64 runs under
-# QEMU). Building locally with `make build push` is often the better option.
+# not on every push. Defaults to a multi-arch linux/amd64,linux/arm64 build so
+# the published template runs on Apple Silicon hosts too (the arm64 leg runs
+# under QEMU, which is slow — pass a single platform to build faster).
+# Building locally with `make build push` is often the better option.
 on:
   push:
     tags: ["v*"]
@@ -13,7 +14,7 @@ on:
       platforms:
         description: "Build platforms"
         required: false
-        default: "linux/amd64"
+        default: "linux/amd64,linux/arm64"
       install_clouds:
         description: "Install AWS/Azure/gcloud CLIs (1/0)"
         required: false
@@ -65,7 +66,7 @@ jobs:
         with:
           context: .
           file: template/Dockerfile
-          platforms: ${{ inputs.platforms || 'linux/amd64' }}
+          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
           build-args: |
             ISK_INSTALL_CLOUDS=${{ inputs.install_clouds || '1' }}
           tags: ${{ steps.tags.outputs.tags }}

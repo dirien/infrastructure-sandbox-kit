@@ -112,10 +112,11 @@ cd ~/runbooks/terraform-random && terraform init && terraform plan
 
 The core IaC tools are installed from a pinned version and verified by checksum
 or signature, no `curl | sh`. That covers Pulumi and ESC, Terraform, OpenTofu and
-the AWS CLI (pinned + SHA256), and Azure CLI and gcloud (GPG-signed vendor apt
-repos). The language servers, `golangci-lint` and APM itself use their vendors'
-installers (`go install`, `npm`, the APM install script), so those are not
-version-pinned.
+the AWS CLI (pinned + SHA256), Azure CLI and gcloud (GPG-signed vendor apt
+repos), and the APM CLI (pinned release tarball + published SHA256 — apm 0.27+
+rejects root-level skill dependencies, so "latest" would break provisioning).
+The language servers and `golangci-lint` use their vendors' installers
+(`go install`, `npm`), so those are not version-pinned.
 
 | Tool | Method | Verification |
 |---|---|---|
@@ -125,6 +126,7 @@ version-pinned.
 | AWS CLI v2 | official installer zip | pinned per-arch SHA256 |
 | Azure CLI | Microsoft apt repo | GPG-signed (apt) |
 | gcloud | Google Cloud apt repo | GPG-signed (apt) |
+| APM CLI | GitHub release tarball | pinned + published SHA256 |
 
 ## What "APM in the agent home" means here
 
@@ -174,6 +176,7 @@ infrastructure-sandbox-kit/
 | AWS CLI v2 | `2.36.10` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
 | my-claude-apm-setup | `v0.6.0` | `ISK_APM_SETUP_REF` |
+| APM CLI | `0.26.0` | `ISK_APM_VERSION` (0.27+ rejects root-level skill deps) |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 
 `make help` lists every target. Validate with `make validate` (`sbx kit validate ./kit`).

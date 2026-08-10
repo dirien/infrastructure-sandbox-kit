@@ -38,7 +38,8 @@ permissions:
       - packages.microsoft.com
       - packages.cloud.google.com
       - dl.google.com
-      # GitHub: Pulumi/OpenTofu binaries, provider plugins, gh, APM repos
+      # GitHub: Pulumi/OpenTofu binaries, provider plugins, gh, the APM CLI
+      # release tarballs and the APM skill repos
       - github.com
       - api.github.com
       - codeload.github.com
@@ -52,8 +53,6 @@ permissions:
       - proxy.golang.org
       - sum.golang.org
       - storage.googleapis.com
-      # APM installer
-      - aka.ms
       # Cloud control-plane starters (extend per provider/region; docs/network.md)
       - sts.amazonaws.com
       - management.azure.com
@@ -109,6 +108,8 @@ setup:
         export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
         export ISK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
         export ISK_APM_SETUP_REF="v0.6.0"
+        export ISK_APM_VERSION="0.26.0"     # apm >= 0.27 rejects root-level skill deps (blader/humanizer)
+        export ISK_HUMANIZER_REF="1b48564898e999219882660237fde01bf4843a0f"  # humanizer skill, installed straight into ~/.claude/skills
         export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
         KIT_REPO="dirien/infrastructure-sandbox-kit"
         # Immutable ref the provisioning scripts are fetched from (reproducible). A
