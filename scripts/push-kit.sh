@@ -11,7 +11,7 @@
 # Consumers run it by a bare OCI reference (no oci:// prefix); a tag works, a digest
 # pins it exactly:
 #   sbx run --kit ghcr.io/dirien/infrastructure-kit:latest claude .   # mixin
-#   sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:latest .  # sandbox kit
+#   sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:latest infrastructure-sandbox .
 #
 # Reproducibility: the staged spec.yaml's KIT_REF is rewritten to the exact commit
 # SHA being published, so a pinned OCI artifact always fetches its provisioning
