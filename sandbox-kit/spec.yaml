@@ -9,7 +9,7 @@ description: >-
   a single `--kit` flag brings up the whole IaC workstation. The sibling
   `kit/` mixin declares the same behavior for layering onto the stock
   `claude` agent (zero build).
-version: "0.6.1"
+version: "0.7.0"
 
 # The declarative blocks below mirror kit/spec.yaml (the mixin). When you
 # change one, change both. The only intended differences are this header,
@@ -18,7 +18,7 @@ sandbox:
   # The prebuilt multi-arch template (linux/amd64 + linux/arm64) with the IaC
   # toolchain baked in; see template/. The image pins its own tool versions,
   # so this kit's install step is a fast sentinel no-op.
-  image: ghcr.io/dirien/infrastructure-sandbox:v0.6.1
+  image: ghcr.io/dirien/infrastructure-sandbox:v0.7.0
 
 # Egress allow-list. The kit ships what its own provisioning and the core IaC
 # flow need; add your cloud/region endpoints (see docs/network.md). Kit-level
@@ -129,7 +129,7 @@ setup:
         # Immutable ref the provisioning scripts are fetched from (reproducible). A
         # released tag/SHA — NOT a moving branch. `sbx kit push` rewrites this to the
         # exact commit SHA when publishing to OCI (see scripts/push-kit.sh).
-        KIT_REF="v0.6.1"
+        KIT_REF="v0.7.0"
         # --- locate the provisioning scripts: baked image first, else fetch to a stable home path ---
         DIR="$HOME/.local/share/infrastructure-sandbox-kit/scripts"
         if [ ! -f "$DIR/provision.sh" ]; then

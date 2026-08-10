@@ -8,7 +8,7 @@
 #   make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox
 IMAGE       ?= infrastructure-sandbox
 # Version tag for the image + the published kit. Defaults to the latest git tag.
-VERSION     ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.6.1)
+VERSION     ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.7.0)
 DOCKERFILE  ?= template/Dockerfile
 PLATFORM    ?=                      # e.g. linux/arm64 or linux/amd64,linux/arm64
 KIT         ?= ./kit
