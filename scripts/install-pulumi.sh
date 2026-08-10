@@ -37,6 +37,7 @@ else
   case "$ARCH" in
     x64)   verify_sha256 "$tmp/$tarball" "$pulumi_sha_x64" ;;
     arm64) verify_sha256 "$tmp/$tarball" "$pulumi_sha_arm64" ;;
+    *)     die "no pinned pulumi checksum for arch '${ARCH}' — refusing an unverified install" ;;
   esac
   tar -C "$tmp" -xzf "$tmp/$tarball"          # extracts to $tmp/pulumi/
   as_root rm -rf "$PREFIX"
@@ -45,6 +46,9 @@ else
   # Every binary is named pulumi*; symlink them all into /usr/local/bin so they
   # resolve in non-login shells too (Pulumi finds its language/resource plugins
   # by PATH lookup of the pulumi-* siblings).
+  # The single quotes are deliberate: $f and $(basename "$f") must expand inside
+  # the root shell's loop, not before as_root runs; only $PREFIX is spliced in.
+  # shellcheck disable=SC2016
   as_root sh -c 'for f in "'"$PREFIX"'"/pulumi*; do ln -sf "$f" "/usr/local/bin/$(basename "$f")"; done'
   have pulumi || die "pulumi not on PATH after install"
   log "pulumi installed: $(pulumi version)"
