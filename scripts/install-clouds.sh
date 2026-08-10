@@ -60,6 +60,7 @@ install_aws() {
   case "$a" in
     x86_64)  verify_sha256 "$tmp/awscli.zip" "$awscli_sha_x86_64" ;;
     aarch64) verify_sha256 "$tmp/awscli.zip" "$awscli_sha_aarch64" ;;
+    *)       warn "no pinned aws-cli checksum for arch '${a}' — refusing an unverified install"; return 1 ;;
   esac
   unzip -o -q "$tmp/awscli.zip" -d "$tmp"        || return 1
   as_root "$tmp/aws/install" --update            || return 1

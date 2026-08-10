@@ -1,0 +1,14 @@
+# ShellCheck project configuration for scripts/*.sh (all bash, per shebang).
+# CI runs the same pinned ShellCheck via .github/workflows/lint-scripts.yaml.
+
+# Optional checks enforced on top of the defaults. All four are clean today;
+# add-default-case exists to keep the checksum-selection `case` statements from
+# ever falling through to an unverified install.
+enable=avoid-nullary-conditions
+enable=check-unassigned-uppercase
+enable=deprecate-which
+enable=add-default-case
+
+# The scripts source lib.sh from their own directory; follow it.
+external-sources=true
+source-path=SCRIPTDIR

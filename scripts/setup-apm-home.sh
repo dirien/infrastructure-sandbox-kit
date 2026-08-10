@@ -59,8 +59,10 @@ if [ ! -d "$SETUP_DIR/.git" ]; then
     || { warn "ref '${APM_REF}' not found; cloning default branch"; git clone --depth 1 "https://github.com/${APM_REPO}.git" "$SETUP_DIR"; }
 else
   log "updating ${SETUP_DIR}"
-  git -C "$SETUP_DIR" fetch --depth 1 --tags origin "$APM_REF" 2>/dev/null \
-    && git -C "$SETUP_DIR" checkout -q FETCH_HEAD 2>/dev/null || warn "could not update to ${APM_REF}; using existing checkout"
+  if ! { git -C "$SETUP_DIR" fetch --depth 1 --tags origin "$APM_REF" 2>/dev/null \
+         && git -C "$SETUP_DIR" checkout -q FETCH_HEAD 2>/dev/null; }; then
+    warn "could not update to ${APM_REF}; using existing checkout"
+  fi
 fi
 
 # --- 3. Materialize with APM (reproducible from the lockfile) --------------
