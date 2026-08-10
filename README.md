@@ -25,17 +25,18 @@ The sandbox comes with:
   rules, and two guardrail hooks. One blocks destructive shell
   commands; the other scans edits for secrets and formats them.
 
-## Two ways to use it
+## Three ways to use it
 
-| | Template (recommended) | Kit only |
-|---|---|---|
-| What | A prebuilt image with the tools baked in | The stock `claude` image plus this kit, installed at create time |
-| Speed | Instant sandbox starts | A few minutes on first create (downloads + APM) |
-| Needs | one image build | nothing, once the kit is published or pushed to GitHub |
+| | Sandbox kit (one flag) | Template + mixin | Mixin only |
+|---|---|---|---|
+| What | One OCI artifact that names the prebuilt image and carries all the rules | The prebuilt image plus the `kit/` mixin | The stock `claude` image plus the `kit/` mixin, installed at create time |
+| Speed | Instant sandbox starts | Instant sandbox starts | A few minutes on first create (downloads + APM) |
+| Needs | nothing (published on GHCR) | one image build, or the published image | nothing |
 
-Both run the built-in `claude` agent, so Claude's own auth is untouched, and both
-apply the same `kit/` mixin for the network rules, the Pulumi credential, the MCP
-servers and the agent instructions.
+Every path applies the same declarations: the network rules, the Pulumi
+credential, the MCP servers and the agent instructions. The mixin paths run the
+built-in `claude` agent, so Claude's own auth is untouched; the sandbox kit
+defines the agent itself and pins the image (see [`sandbox-kit/`](sandbox-kit)).
 
 ## Prerequisites
 
@@ -47,7 +48,19 @@ servers and the agent instructions.
 
 ## Run it
 
-### On the prebuilt template image (recommended)
+### One artifact: the sandbox kit
+
+```bash
+sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
+sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:latest .
+```
+
+The kit names the template image and carries every rule, so there is nothing
+else to pass. A sandbox kit defines the agent itself; if your `sbx` build still
+expects an agent name, use `infrastructure-sandbox`. Details in
+[`sandbox-kit/`](sandbox-kit).
+
+### On the prebuilt template image
 
 The image is stamped with both its version tag (`:v0.6.1`) and `:latest`.
 
@@ -149,7 +162,8 @@ To update it later, run `git -C ~/.claude-apm-setup pull && ISK_FORCE=1 ~/.local
 
 ```
 infrastructure-sandbox-kit/
-├── kit/spec.yaml              # the kit: kind: mixin, schemaVersion "2"
+├── kit/spec.yaml              # the mixin kit: kind: mixin, schemaVersion "2"
+├── sandbox-kit/spec.yaml      # the one-flag bundle: kind: sandbox, pins the image + same rules
 ├── template/Dockerfile        # the baked image (FROM claude-code-docker)
 ├── scripts/                   # canonical provisioning, shared by both paths
 │   ├── lib.sh                 #   shared helpers (arch, fetch, verify)

@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - kit/**
+      - sandbox-kit/**
       - scripts/push-kit.sh
       - .github/workflows/publish-kit.yaml
     tags: ["v*"]
@@ -57,12 +58,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push kit
+      - name: Push kits (mixin + sandbox)
         env:
           REGISTRY: ghcr.io/${{ github.repository_owner }}
         run: |
           set -euo pipefail
           TAG="${{ inputs.tag || 'latest' }}" ./scripts/push-kit.sh
+          KIT_DIR=sandbox-kit KIT_NAME=infrastructure-sandbox-kit \
+            TAG="${{ inputs.tag || 'latest' }}" ./scripts/push-kit.sh
           if [ "${{ github.ref_type }}" = "tag" ]; then
             TAG="${{ github.ref_name }}" ./scripts/push-kit.sh
+            KIT_DIR=sandbox-kit KIT_NAME=infrastructure-sandbox-kit \
+              TAG="${{ github.ref_name }}" ./scripts/push-kit.sh
           fi
