@@ -13,9 +13,8 @@ the extra cloud and region endpoints and provider plugins you use.
 | Terraform / OpenTofu | `releases.hashicorp.com`, `registry.terraform.io`, `registry.opentofu.org`, `get.opentofu.org` | CLI downloads + provider registries |
 | Cloud CLIs | `awscli.amazonaws.com`, `packages.microsoft.com`, `packages.cloud.google.com`, `dl.google.com` | AWS CLI zip + Azure/gcloud GPG-signed apt repos |
 | Cloud control-plane (starters) | `sts.amazonaws.com`, `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`, `accounts.google.com`, `oauth2.googleapis.com`, `*.googleapis.com` | basic identity, ARM, and `gcloud auth`; extend per provider and region |
-| GitHub | `github.com`, `api.github.com`, `codeload.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` | Pulumi/OpenTofu binaries, provider plugins, `gh`, APM repos |
+| GitHub | `github.com`, `api.github.com`, `codeload.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` | Pulumi/OpenTofu binaries, provider plugins, `gh`, the APM CLI release tarballs, the APM skill repos |
 | Registries | `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org`, `proxy.golang.org`, `sum.golang.org`, `storage.googleapis.com` | your IaC program's deps + provisioning |
-| APM | `aka.ms` | APM installer |
 
 The `.NET` hosts (`dot.net`, `builds.dotnet.microsoft.com`, `api.nuget.org`,
 `*.nuget.org`) are present but commented out. Uncomment them together with
