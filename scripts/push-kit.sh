@@ -3,7 +3,7 @@
 # a self-contained artifact (spec.yaml + files/ + README + LICENSE).
 #
 #   ./scripts/push-kit.sh                    # push kit/ as :latest to ghcr.io/dirien/infrastructure-kit
-#   TAG=v0.7.0 ./scripts/push-kit.sh         # push a specific tag
+#   TAG=v0.8.0 ./scripts/push-kit.sh         # push a specific tag
 #   KIT_DIR=sandbox-kit KIT_NAME=infrastructure-sandbox-kit ./scripts/push-kit.sh
 #   REGISTRY=ghcr.io/you ./scripts/push-kit.sh
 #

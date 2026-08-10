@@ -18,12 +18,12 @@ latest git tag) and `:latest`.
 
 ```bash
 # from the repo root
-make build                         # -> infrastructure-sandbox:v0.7.0 and :latest
+make build                         # -> infrastructure-sandbox:v0.8.0 and :latest
 make build INSTALL_CLOUDS=0        # leaner: skip the AWS/Azure/gcloud CLIs
 make build INSTALL_DOTNET=1        # also install the .NET SDK + csharp-ls for Pulumi C#
 # or directly:
 DOCKER_BUILDKIT=1 docker build -f template/Dockerfile \
-  -t infrastructure-sandbox:v0.7.0 -t infrastructure-sandbox:latest .
+  -t infrastructure-sandbox:v0.8.0 -t infrastructure-sandbox:latest .
 ```
 
 Build args (all pinned; override with `--build-arg`):
@@ -49,14 +49,14 @@ Load into sbx's local template store (no registry needed):
 
 ```bash
 make load                          # build + docker save (both tags) + sbx template load
-sbx run --template infrastructure-sandbox:v0.7.0 --kit ./kit claude .
+sbx run --template infrastructure-sandbox:v0.8.0 --kit ./kit claude .
 ```
 
-Or publish to a registry (pushes `:v0.7.0` and `:latest`) and reference it there:
+Or publish to a registry (pushes `:v0.8.0` and `:latest`) and reference it there:
 
 ```bash
 make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox
-sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.7.0 --kit ./kit claude .
+sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.8.0 --kit ./kit claude .
 ```
 
 Running the template together with the kit is the intended combination. The image

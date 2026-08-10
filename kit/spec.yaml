@@ -10,7 +10,7 @@ description: >-
   the agent home (skills, subagents, guardrail hooks, MCP). Layer it onto the
   built-in `claude` agent, or onto the prebuilt template image where the same
   tools are baked in and this becomes a fast no-op.
-version: "0.7.0"
+version: "0.8.0"
 
 # The kit is Claude-specific (APM lands in ~/.claude, the hooks target Claude
 # Code), so pin the base agent. Both documented paths run `sbx run … claude .`.
@@ -127,7 +127,7 @@ setup:
         # Immutable ref the provisioning scripts are fetched from (reproducible). A
         # released tag/SHA — NOT a moving branch. `sbx kit push` rewrites this to the
         # exact commit SHA when publishing to OCI (see scripts/push-kit.sh).
-        KIT_REF="v0.7.0"
+        KIT_REF="v0.8.0"
         # --- locate the provisioning scripts: baked image first, else fetch to a stable home path ---
         DIR="$HOME/.local/share/infrastructure-sandbox-kit/scripts"
         if [ ! -f "$DIR/provision.sh" ]; then
