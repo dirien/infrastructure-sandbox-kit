@@ -10,7 +10,7 @@ description: >-
   the agent home (skills, subagents, guardrail hooks, MCP). Layer it onto the
   built-in `claude` agent, or onto the prebuilt template image where the same
   tools are baked in and this becomes a fast no-op.
-version: "0.6.0"
+version: "0.6.1"
 
 # The kit is Claude-specific (APM lands in ~/.claude, the hooks target Claude
 # Code), so pin the base agent. Both documented paths run `sbx run … claude .`.
@@ -107,15 +107,14 @@ setup:
         export ISK_AZ_APT_DIST="noble"       # Microsoft azure-cli repo dist (no 'resolute'/26.04 yet)
         export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
         export ISK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
-        export ISK_APM_SETUP_REF="v0.6.0"
-        export ISK_APM_VERSION="0.26.0"     # apm >= 0.27 rejects root-level skill deps (blader/humanizer)
-        export ISK_HUMANIZER_REF="1b48564898e999219882660237fde01bf4843a0f"  # humanizer skill, installed straight into ~/.claude/skills
+        export ISK_APM_SETUP_REF="v0.6.1"
+        export ISK_APM_VERSION="0.28.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
         export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
         KIT_REPO="dirien/infrastructure-sandbox-kit"
         # Immutable ref the provisioning scripts are fetched from (reproducible). A
         # released tag/SHA — NOT a moving branch. `sbx kit push` rewrites this to the
         # exact commit SHA when publishing to OCI (see scripts/push-kit.sh).
-        KIT_REF="v0.6.0"
+        KIT_REF="v0.6.1"
         # --- locate the provisioning scripts: baked image first, else fetch to a stable home path ---
         DIR="$HOME/.local/share/infrastructure-sandbox-kit/scripts"
         if [ ! -f "$DIR/provision.sh" ]; then

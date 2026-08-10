@@ -3,7 +3,7 @@
 # self-contained artifact (spec.yaml + files/ + README + LICENSE).
 #
 #   ./scripts/push-kit.sh                    # push :latest to ghcr.io/dirien/infrastructure-kit
-#   TAG=v0.6.0 ./scripts/push-kit.sh         # push a specific tag
+#   TAG=v0.6.1 ./scripts/push-kit.sh         # push a specific tag
 #   REGISTRY=ghcr.io/you ./scripts/push-kit.sh
 #
 # Requires `sbx` and Docker logged in to the registry (the CI workflow handles both).

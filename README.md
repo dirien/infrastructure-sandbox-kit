@@ -48,23 +48,23 @@ servers and the agent instructions.
 
 ### On the prebuilt template image (recommended)
 
-The image is stamped with both its version tag (`:v0.6.0`) and `:latest`.
+The image is stamped with both its version tag (`:v0.6.1`) and `:latest`.
 
 ```bash
-make load                          # build + load into sbx (as :v0.6.0 and :latest)
+make load                          # build + load into sbx (as :v0.6.1 and :latest)
 #   leaner (no cloud CLIs):  make load INSTALL_CLOUDS=0
 #   add .NET (Pulumi C#):    make load INSTALL_DOTNET=1
 
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
 
-make run                           # sbx run --template infrastructure-sandbox:v0.6.0 --kit ./kit claude .
+make run                           # sbx run --template infrastructure-sandbox:v0.6.1 --kit ./kit claude .
 ```
 
-Or push to a registry (as `:v0.6.0` and `:latest`) and point `--template` at it:
+Or push to a registry (as `:v0.6.1` and `:latest`) and point `--template` at it:
 
 ```bash
-make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox        # + VERSION=v0.6.0 to override
-sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.6.0 --kit ./kit claude .
+make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox        # + VERSION=v0.6.1 to override
+sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.6.1 --kit ./kit claude .
 ```
 
 ### Kit only, no image build
@@ -95,7 +95,7 @@ On the stock `claude` image the kit installs the toolchain at create time, which
 takes a few minutes.
 
 Reproducibility: the kit fetches its provisioning scripts from `KIT_REF` in
-`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.6.0`), not a
+`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.6.1`), not a
 moving branch — so the scripts don't change under you even if you fetch the kit
 from `main`. `make publish-kit` goes further and rewrites `KIT_REF` to the exact
 commit SHA in the OCI artifact. To pin a git run to a different release, use
@@ -113,8 +113,8 @@ cd ~/runbooks/terraform-random && terraform init && terraform plan
 The core IaC tools are installed from a pinned version and verified by checksum
 or signature, no `curl | sh`. That covers Pulumi and ESC, Terraform, OpenTofu and
 the AWS CLI (pinned + SHA256), Azure CLI and gcloud (GPG-signed vendor apt
-repos), and the APM CLI (pinned release tarball + published SHA256 — apm 0.27+
-rejects root-level skill dependencies, so "latest" would break provisioning).
+repos), and the APM CLI (pinned release tarball + published SHA256 — apm's
+behaviour shifts between releases, so installing "latest" is a hazard).
 The language servers and `golangci-lint` use their vendors' installers
 (`go install`, `npm`), so those are not version-pinned.
 
@@ -175,8 +175,8 @@ infrastructure-sandbox-kit/
 | OpenTofu | `1.12.5` | same |
 | AWS CLI v2 | `2.36.10` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
-| my-claude-apm-setup | `v0.6.0` | `ISK_APM_SETUP_REF` |
-| APM CLI | `0.26.0` | `ISK_APM_VERSION` (0.27+ rejects root-level skill deps) |
+| my-claude-apm-setup | `v0.6.1` | `ISK_APM_SETUP_REF` |
+| APM CLI | `0.28.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 
 `make help` lists every target. Validate with `make validate` (`sbx kit validate ./kit`).
