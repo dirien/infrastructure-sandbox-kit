@@ -6,7 +6,9 @@ The declarative half of `infrastructure-sandbox-kit`: a `schemaVersion: "2"`,
 It carries the network allow-list, the Pulumi Cloud credential and the agent
 instructions. When the tools aren't already baked into a [template image](../template),
 it also provisions them (Pulumi, Terraform, OpenTofu, the AWS/Azure/gcloud CLIs
-and APM) at sandbox-create time.
+and APM) at sandbox-create time. If you would rather pass one flag that bundles
+the image reference with these same declarations, use the
+[`../sandbox-kit`](../sandbox-kit) variant.
 
 ```bash
 # On the stock claude image (zero build, installs at create time):

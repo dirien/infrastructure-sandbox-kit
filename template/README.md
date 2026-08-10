@@ -3,9 +3,10 @@
 A prebuilt sandbox image: `docker/sandbox-templates:claude-code-docker` with the
 full IaC toolchain (Pulumi, Terraform, OpenTofu, and the AWS/Azure/gcloud CLIs)
 and `dirien/my-claude-apm-setup` baked in, so sandboxes start with the tools
-already installed. This is the recommended path. The [`../kit`](../kit) mixin adds
-the network rules, the Pulumi credential injection, the MCP servers and the agent
-instructions on top.
+already installed. The [`../kit`](../kit) mixin adds the network rules, the
+Pulumi credential injection, the MCP servers and the agent instructions on top.
+The [`../sandbox-kit`](../sandbox-kit) artifact bundles this image reference and
+those rules into a single `--kit` flag.
 
 ## Build
 
