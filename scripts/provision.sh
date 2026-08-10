@@ -25,7 +25,7 @@ if [ -f "$SENTINEL" ] && [ "${ISK_FORCE:-0}" != "1" ]; then
   exit 0
 fi
 
-log "provisioning: pulumi=${ISK_PULUMI_VERSION:-3.255.0} terraform=${ISK_TERRAFORM_VERSION:-1.15.8} opentofu=${ISK_OPENTOFU_VERSION:-1.12.5} clouds=${ISK_INSTALL_CLOUDS:-1} dotnet=${ISK_INSTALL_DOTNET:-0}"
+log "provisioning: pulumi=${ISK_PULUMI_VERSION:-3.256.0} terraform=${ISK_TERRAFORM_VERSION:-1.15.8} opentofu=${ISK_OPENTOFU_VERSION:-1.12.5} clouds=${ISK_INSTALL_CLOUDS:-1} dotnet=${ISK_INSTALL_DOTNET:-0}"
 
 # Core IaC tools are fatal: a failure here should abort and be retried, not ship a
 # broken sandbox missing its whole reason for being.
