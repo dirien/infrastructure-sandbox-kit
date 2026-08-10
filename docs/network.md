@@ -12,6 +12,7 @@ the extra cloud and region endpoints and provider plugins you use.
 | Pulumi | `api.pulumi.com`, `get.pulumi.com`, `mcp.ai.pulumi.com` | state/API, plugin/CLI downloads, hosted MCP |
 | Terraform / OpenTofu | `releases.hashicorp.com`, `registry.terraform.io`, `registry.opentofu.org`, `get.opentofu.org` | CLI downloads + provider registries |
 | Cloud CLIs | `awscli.amazonaws.com`, `packages.microsoft.com`, `packages.cloud.google.com`, `dl.google.com` | AWS CLI zip + Azure/gcloud GPG-signed apt repos |
+| OS packages | `archive.ubuntu.com`, `security.ubuntu.com`, `ports.ubuntu.com`, `download.docker.com` | plain `apt-get update`/`install` in the sandbox (base Ubuntu sources + the pre-added Docker repo; `ports` serves arm64) |
 | Cloud control-plane (starters) | `sts.amazonaws.com`, `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`, `accounts.google.com`, `oauth2.googleapis.com`, `*.googleapis.com` | basic identity, ARM, and `gcloud auth`; extend per provider and region |
 | GitHub | `github.com`, `api.github.com`, `codeload.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` | Pulumi/OpenTofu binaries, provider plugins, `gh`, the APM CLI release tarballs, the APM skill repos |
 | Registries | `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org`, `proxy.golang.org`, `sum.golang.org`, `storage.googleapis.com` | your IaC program's deps + provisioning |
@@ -104,12 +105,10 @@ CDN shows up here too.
 
 `apt-get update` normally refreshes every configured source, not just the one you
 asked for, so one unreachable source fails the whole update under deny-all. The
-kit's Azure and gcloud installs avoid this by refreshing only their own list
-(`apt-get update -o Dir::Etc::sourcelist=… -o Dir::Etc::sourceparts=-`), so they
-need only `packages.microsoft.com` and `packages.cloud.google.com`, not the base
-Ubuntu and Docker sources.
+kit allows the base image's sources (`archive.ubuntu.com`, `security.ubuntu.com`,
+`ports.ubuntu.com`, and the pre-added `download.docker.com`), so a plain
+`apt-get update && apt-get install` works in the sandbox out of the box.
 
-If you add your own `apt-get update` step, remember that the base `*-docker` image
-pre-adds `download.docker.com`. Allow it (and `archive.ubuntu.com`,
-`security.ubuntu.com`, `ports.ubuntu.com` for cross-arch coverage) or it fails
-under deny-all.
+The kit's own Azure and gcloud installs still refresh only their own list
+(`apt-get update -o Dir::Etc::sourcelist=… -o Dir::Etc::sourceparts=-`) — that
+keeps provisioning fast and independent of the base sources' availability.
