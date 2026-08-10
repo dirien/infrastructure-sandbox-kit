@@ -114,7 +114,7 @@ setup:
         export ISK_AZ_APT_DIST="noble"       # Microsoft azure-cli repo dist (no 'resolute'/26.04 yet)
         export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
         export ISK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
-        export ISK_APM_SETUP_REF="v0.6.1"
+        export ISK_APM_SETUP_REF="v0.6.2"
         export ISK_APM_VERSION="0.28.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
         export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
         KIT_REPO="dirien/infrastructure-sandbox-kit"
