@@ -21,7 +21,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-AWSCLI_VERSION="${ISK_AWSCLI_VERSION:-2.36.10}"
+AWSCLI_VERSION="${ISK_AWSCLI_VERSION:-2.36.34}"
 AZ_APT_DIST="${ISK_AZ_APT_DIST:-noble}"   # Microsoft azure-cli repo has no 'resolute' (26.04) dist yet; noble works
 DEB_ARCH="$(deb_arch)"
 
@@ -50,8 +50,8 @@ apt_update_one() {
 }
 
 # --- AWS CLI v2 (pinned, SHA256-verified, version-checked) -----------------
-awscli_sha_x86_64="f6bf7f19f584a1b32b50217f357f2a5877204cf6f703fec8036cd774932383dd"
-awscli_sha_aarch64="8435364a5a09004a644340131c720e081823023f9c69d5fd15f9bc650fb662fc"
+awscli_sha_x86_64="c15dd1f18b1794431d9746c0fab74e9e236bea5eb163bc0d2f1ec179d169f9cb"
+awscli_sha_aarch64="2b9d9305db94af64baee48106f54b6652ede5732494c0ba61ae305720ac72505"
 install_aws() {
   if aws_is_current; then log "aws-cli ${AWSCLI_VERSION} already installed — skipping"; return 0; fi
   local a; a="$(aws_arch)"                  # x86_64 | aarch64 (dies on unknown arch)

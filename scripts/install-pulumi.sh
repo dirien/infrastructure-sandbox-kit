@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-PULUMI_VERSION="${ISK_PULUMI_VERSION:-3.256.0}"
+PULUMI_VERSION="${ISK_PULUMI_VERSION:-3.260.0}"
 PREFIX="/opt/pulumi"
 ARCH="$(rel_arch)"
 
@@ -23,8 +23,8 @@ trap 'rm -rf "$tmp"' EXIT
 # Per-arch checksums, pinned to PULUMI_VERSION. Source of truth:
 #   https://get.pulumi.com/releases/sdk/pulumi-<version>-checksums.txt
 # Bump both when you change PULUMI_VERSION.
-pulumi_sha_x64="fe4afd4cda48f7fe06961268834caf78fb1efa8b31ee61ad00ee2e6cfa91caea"
-pulumi_sha_arm64="a5b0c4cfc894d9147b8769eeb590fb6517f98829595d95443c2b6f91b1815711"
+pulumi_sha_x64="d7b2936f986e82fd5fa2025bafe27f74d4a50cb6ba6785a16884fd5f270453fe"
+pulumi_sha_arm64="1e7176d55274be10778b5ec7ebb0ae24be4061ad78e9ebfd0e9c1d874927617a"
 
 current_pulumi=""
 have pulumi && current_pulumi="$(pulumi version 2>/dev/null | sed 's/^v//')"

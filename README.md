@@ -189,15 +189,15 @@ infrastructure-sandbox-kit/
 
 | Component | Default | Where to change |
 |---|---|---|
-| Pulumi CLI | `3.256.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
-| Terraform | `1.15.8` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
-| OpenTofu | `1.12.5` | same |
-| kubectl | `1.36.3` | same |
-| Helm | `4.2.3` | same |
-| AWS CLI v2 | `2.36.10` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
+| Pulumi CLI | `3.260.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
+| Terraform | `1.16.0` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
+| OpenTofu | `1.12.6` | same |
+| kubectl | `1.37.0` | same |
+| Helm | `4.2.4` | same |
+| AWS CLI v2 | `2.36.34` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
 | my-claude-apm-setup | `v0.6.2` | `ISK_APM_SETUP_REF` |
-| APM CLI | `0.28.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
+| APM CLI | `0.29.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 
 `make help` lists every target. Validate with `make validate` (`sbx kit validate ./kit`).

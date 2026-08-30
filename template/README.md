@@ -31,16 +31,16 @@ Build args (all pinned; override with `--build-arg`):
 | Arg | Default | Purpose |
 |---|---|---|
 | `BASE` | `docker/sandbox-templates:claude-code-docker` | base sandbox image |
-| `ISK_PULUMI_VERSION` | `3.256.0` | Pulumi CLI |
-| `ISK_TERRAFORM_VERSION` | `1.15.8` | Terraform |
-| `ISK_OPENTOFU_VERSION` | `1.12.5` | OpenTofu |
-| `ISK_KUBECTL_VERSION` | `1.36.3` | kubectl |
-| `ISK_HELM_VERSION` | `4.2.3` | Helm |
-| `ISK_AWSCLI_VERSION` | `2.36.10` | AWS CLI v2 |
+| `ISK_PULUMI_VERSION` | `3.260.0` | Pulumi CLI |
+| `ISK_TERRAFORM_VERSION` | `1.16.0` | Terraform |
+| `ISK_OPENTOFU_VERSION` | `1.12.6` | OpenTofu |
+| `ISK_KUBECTL_VERSION` | `1.37.0` | kubectl |
+| `ISK_HELM_VERSION` | `4.2.4` | Helm |
+| `ISK_AWSCLI_VERSION` | `2.36.34` | AWS CLI v2 |
 | `ISK_AZ_APT_DIST` | `noble` | Microsoft azure-cli apt dist (no `resolute`/26.04 yet) |
 | `ISK_INSTALL_CLOUDS` | `1` | `0` drops the AWS/Azure/gcloud CLIs |
 | `ISK_APM_SETUP_REPO` / `ISK_APM_SETUP_REF` | `dirien/my-claude-apm-setup` / `v0.6.2` | APM setup |
-| `ISK_APM_VERSION` | `0.28.0` | APM CLI (pinned + SHA256; bump deliberately) |
+| `ISK_APM_VERSION` | `0.29.0` | APM CLI (pinned + SHA256; bump deliberately) |
 | `ISK_INSTALL_DOTNET` / `ISK_DOTNET_CHANNEL` | `0` / `8.0` | .NET SDK + csharp-ls |
 
 ## Use it
