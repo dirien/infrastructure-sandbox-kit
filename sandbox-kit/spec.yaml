@@ -113,17 +113,17 @@ setup:
       command: |
         set -eu
         # --- pins (edit to taste) ---
-        export ISK_PULUMI_VERSION="3.256.0"
-        export ISK_TERRAFORM_VERSION="1.15.8"
-        export ISK_OPENTOFU_VERSION="1.12.5"
-        export ISK_KUBECTL_VERSION="1.36.3"
-        export ISK_HELM_VERSION="4.2.3"
-        export ISK_AWSCLI_VERSION="2.36.10"
+        export ISK_PULUMI_VERSION="3.260.0"
+        export ISK_TERRAFORM_VERSION="1.16.0"
+        export ISK_OPENTOFU_VERSION="1.12.6"
+        export ISK_KUBECTL_VERSION="1.37.0"
+        export ISK_HELM_VERSION="4.2.4"
+        export ISK_AWSCLI_VERSION="2.36.34"
         export ISK_AZ_APT_DIST="noble"       # Microsoft azure-cli repo dist (no 'resolute'/26.04 yet)
         export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
         export ISK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
         export ISK_APM_SETUP_REF="v0.6.2"
-        export ISK_APM_VERSION="0.28.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
+        export ISK_APM_VERSION="0.29.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
         export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
         KIT_REPO="dirien/infrastructure-sandbox-kit"
         # Immutable ref the provisioning scripts are fetched from (reproducible). A
