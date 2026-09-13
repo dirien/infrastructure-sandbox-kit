@@ -5,7 +5,9 @@
 # the sandbox, with no per-repo apm.yml required.
 #
 # What it wires:
-#   ~/.claude/skills/*         <- the 23 pinned APM skills (durable across restarts)
+#   ~/.claude/skills/*         <- the pinned APM skills, plus an `apm-lsp` entry
+#                                 that is a Claude LSP plugin, not a skill
+#                                 (durable across restarts)
 #   ~/.claude/agents/*         <- executor / librarian / reviewer subagents (durable)
 #   ~/.claude/rules/*          <- the instruction rules (durable)
 #   ~/.claude/CLAUDE.md        <- a managed block importing those rules
@@ -25,15 +27,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 APM_REPO="${ISK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
 APM_REF="${ISK_APM_SETUP_REF:-v0.6.4}"
-APM_VERSION="${ISK_APM_VERSION:-0.29.0}"
+APM_VERSION="${ISK_APM_VERSION:-0.30.0}"
 SETUP_DIR="${ISK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
 CLAUDE_HOME="$HOME/.claude"
 
 # --- 1. APM CLI (pinned + SHA256-verified) ---------------------------------
 # Never install "latest": apm behaviour shifts between releases (0.27.0 began
 # rejecting root-level skill deps, which broke `apm install --frozen` until the
-# setup vendored the humanizer skill in v0.6.1). Pin + verify like the other
-# core tools and bump ISK_APM_VERSION deliberately.
+# setup vendored the humanizer skill in v0.6.1; 0.29.1/0.30.0 changed how Claude
+# LSP servers are deployed — see step 4). Pin + verify like the other core tools
+# and bump ISK_APM_VERSION deliberately.
 if have apm && apm --version 2>/dev/null | grep -qF " ${APM_VERSION} "; then
   log "apm ${APM_VERSION} already installed"
 else
@@ -70,12 +73,21 @@ log "running 'apm install --frozen' in ${SETUP_DIR}"
 ( cd "$SETUP_DIR" && apm install --frozen )
 
 # --- 4. Mirror skills / agents / rules into ~/.claude (user scope) ---------
+# LSP servers: apm 0.28 wrote a flat .lsp.json, but Claude Code never actually
+# read project LSP config from it (microsoft/apm#2547) — it was silently inert
+# the whole time. apm 0.29.1+ fixed this by emitting a discoverable
+# `apm-lsp` plugin at .claude/skills/apm-lsp/.claude-plugin/plugin.json instead
+# (microsoft/apm#2733), which the skills copy below already picks up since it
+# lives under .claude/skills/. No separate LSP step is needed any more; just
+# clean up a stale .lsp.json from a pre-0.29.1 run of this same script.
 mkdir -p "$CLAUDE_HOME/skills" "$CLAUDE_HOME/agents" "$CLAUDE_HOME/rules"
 [ -d "$SETUP_DIR/.claude/skills" ] && cp -a "$SETUP_DIR/.claude/skills/." "$CLAUDE_HOME/skills/"
 [ -d "$SETUP_DIR/.claude/agents" ] && cp -a "$SETUP_DIR/.claude/agents/." "$CLAUDE_HOME/agents/"
 [ -d "$SETUP_DIR/.claude/rules" ]  && cp -a "$SETUP_DIR/.claude/rules/."  "$CLAUDE_HOME/rules/"
-[ -f "$SETUP_DIR/.lsp.json" ]      && cp -f "$SETUP_DIR/.lsp.json" "$CLAUDE_HOME/.lsp.json"
-log "mirrored $(find "$CLAUDE_HOME/skills" -maxdepth 1 -mindepth 1 -type d | wc -l) skills, $(find "$CLAUDE_HOME/agents" -maxdepth 1 -name '*.md' | wc -l) agents into ${CLAUDE_HOME}"
+rm -f "$CLAUDE_HOME/.lsp.json"
+skill_count=$(find "$CLAUDE_HOME/skills" -maxdepth 1 -mindepth 1 -type d ! -name apm-lsp | wc -l)
+log "mirrored ${skill_count} skills, $(find "$CLAUDE_HOME/agents" -maxdepth 1 -name '*.md' | wc -l) agents into ${CLAUDE_HOME}"
+[ -d "$CLAUDE_HOME/skills/apm-lsp" ] && log "wired the apm-lsp LSP plugin (run /reload-plugins or restart Claude Code to activate LSP servers)"
 # --- 5. Managed block in ~/.claude/CLAUDE.md importing the rules -----------
 CLAUDE_MD="$CLAUDE_HOME/CLAUDE.md"
 BEGIN="<!-- infrastructure-sandbox-kit:begin -->"

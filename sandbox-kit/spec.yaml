@@ -123,7 +123,7 @@ setup:
         export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
         export ISK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
         export ISK_APM_SETUP_REF="v0.6.4"
-        export ISK_APM_VERSION="0.29.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
+        export ISK_APM_VERSION="0.30.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
         export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
         KIT_REPO="dirien/infrastructure-sandbox-kit"
         # Immutable ref the provisioning scripts are fetched from (reproducible). A

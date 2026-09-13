@@ -78,7 +78,8 @@ aren't set yet when the install hook runs:
   `spec.yaml`. The apm CLI is pinned and SHA256-verified like the other core
   tools — bump `ISK_APM_VERSION` deliberately (0.27.0 silently changed dependency
   resolution and broke provisioning until my-claude-apm-setup v0.6.1 vendored
-  the humanizer skill locally).
+  the humanizer skill locally; 0.29.1 changed how Claude LSP servers are
+  deployed — see `scripts/setup-apm-home.sh`).
 - `KIT_REF`: the ref the provisioning scripts are fetched from. It defaults to
   `main`. For reproducible zero-build runs, pin the kit URL (`…#dir=kit&ref=<tag>`)
   and set the matching `KIT_REF` (`make pin REF=<tag>` from the repo root does that).
