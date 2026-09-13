@@ -21,11 +21,12 @@ The sandbox comes with:
   only ever sees `PULUMI_ACCESS_TOKEN=proxy-managed`.
 - The `pulumi` MCP server at user scope (registry lookups, schema and code
   validation, Neo).
-- The APM setup in `~/.claude` for every workspace: 34 skills (including the
+- The APM setup in `~/.claude` for every workspace: 35 skills (including the
   official Pulumi skills, `terraform-skill` with its `code-intelligence`
-  companion, and `shellcheck-configuration`), 3 subagents, the instruction
-  rules, and two guardrail hooks. One blocks destructive shell
-  commands; the other scans edits for secrets and formats them.
+  companion, `shellcheck-configuration`, and `typescript-expert`), 3
+  subagents, the instruction rules, and two guardrail hooks. One blocks
+  destructive shell commands; the other scans edits for secrets and formats
+  them.
 
 ## Three ways to use it
 
@@ -154,7 +155,7 @@ opened in the sandbox without a per-project `apm.yml`:
 
 | Materialized to | From the setup |
 |---|---|
-| `~/.claude/skills/*` | 34 pinned skills |
+| `~/.claude/skills/*` | 35 pinned skills |
 | `~/.claude/agents/*` | `executor`, `librarian`, `reviewer` subagents |
 | `~/.claude/rules/*` + a managed block in `~/.claude/CLAUDE.md` | the instruction rules |
 | `~/.claude/settings.json` | the PreToolUse guard + PostToolUse secret-scan/format hooks, rewritten to absolute paths so they fire in any workspace |
@@ -196,7 +197,7 @@ infrastructure-sandbox-kit/
 | Helm | `4.2.4` | same |
 | AWS CLI v2 | `2.36.34` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
-| my-claude-apm-setup | `v0.6.2` | `ISK_APM_SETUP_REF` |
+| my-claude-apm-setup | `v0.6.3` | `ISK_APM_SETUP_REF` |
 | APM CLI | `0.29.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 
