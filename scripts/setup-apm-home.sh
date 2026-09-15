@@ -26,7 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 
 APM_REPO="${ISK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
-APM_REF="${ISK_APM_SETUP_REF:-v0.6.4}"
+APM_REF="${ISK_APM_SETUP_REF:-v0.6.5}"
 APM_VERSION="${ISK_APM_VERSION:-0.30.0}"
 SETUP_DIR="${ISK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
 CLAUDE_HOME="$HOME/.claude"
@@ -69,6 +69,14 @@ else
 fi
 
 # --- 3. Materialize with APM (reproducible from the lockfile) --------------
+# apm.yml may declare a `lifecycle:` block (post-install etc.). Those scripts are
+# trust-gated per machine and a fresh clone is untrusted, so `apm install` would
+# silently SKIP them. The setup repo is pinned to $APM_REF and already supplies
+# the guardrail hooks this kit runs on every tool call, so trusting its lifecycle
+# is the same trust boundary — not a wider one. Non-fatal and quiet: an apm
+# without the subcommand, or a repo with no `lifecycle:` block, just no-ops, and
+# an untrusted install still produces a fully working setup.
+( cd "$SETUP_DIR" && apm lifecycle trust </dev/null >/dev/null 2>&1 ) || true
 log "running 'apm install --frozen' in ${SETUP_DIR}"
 ( cd "$SETUP_DIR" && apm install --frozen )
 
