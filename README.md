@@ -21,9 +21,9 @@ The sandbox comes with:
   only ever sees `PULUMI_ACCESS_TOKEN=proxy-managed`.
 - The `pulumi` MCP server at user scope (registry lookups, schema and code
   validation, Neo).
-- The APM setup in `~/.claude` for every workspace: 35 skills (including the
+- The APM setup in `~/.claude` for every workspace: 36 skills (including the
   official Pulumi skills, `terraform-skill` with its `code-intelligence`
-  companion, `shellcheck-configuration`, and `typescript-expert`), 3
+  companion, `shellcheck-configuration`, `typescript-expert`, and `clarity`), 3
   subagents, the instruction rules, and two guardrail hooks. One blocks
   destructive shell commands; the other scans edits for secrets and formats
   them.
@@ -55,7 +55,7 @@ defines the agent itself and pins the image (see [`sandbox-kit/`](sandbox-kit)).
 
 ```bash
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
-sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.10.3 infrastructure-sandbox .
+sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.10.4 infrastructure-sandbox .
 ```
 
 The kit names the template image and carries every rule. A sandbox kit defines
@@ -65,23 +65,23 @@ the image ships). Details in [`sandbox-kit/`](sandbox-kit).
 
 ### On the prebuilt template image
 
-The image is stamped with both its version tag (`:v0.10.3`) and `:latest`.
+The image is stamped with both its version tag (`:v0.10.4`) and `:latest`.
 
 ```bash
-make load                          # build + load into sbx (as :v0.10.3 and :latest)
+make load                          # build + load into sbx (as :v0.10.4 and :latest)
 #   leaner (no cloud CLIs):  make load INSTALL_CLOUDS=0
 #   add .NET (Pulumi C#):    make load INSTALL_DOTNET=1
 
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
 
-make run                           # sbx run --template infrastructure-sandbox:v0.10.3 --kit ./kit claude .
+make run                           # sbx run --template infrastructure-sandbox:v0.10.4 --kit ./kit claude .
 ```
 
-Or push to a registry (as `:v0.10.3` and `:latest`) and point `--template` at it:
+Or push to a registry (as `:v0.10.4` and `:latest`) and point `--template` at it:
 
 ```bash
-make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox        # + VERSION=v0.10.3 to override
-sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.10.3 --kit ./kit claude .
+make build push IMAGE=ghcr.io/dirien/infrastructure-sandbox        # + VERSION=v0.10.4 to override
+sbx run --template ghcr.io/dirien/infrastructure-sandbox:v0.10.4 --kit ./kit claude .
 ```
 
 ### Kit only, no image build
@@ -112,7 +112,7 @@ On the stock `claude` image the kit installs the toolchain at create time, which
 takes a few minutes.
 
 Reproducibility: the kit fetches its provisioning scripts from `KIT_REF` in
-`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.10.3`), not a
+`kit/spec.yaml`, which is pinned to an immutable release tag (`v0.10.4`), not a
 moving branch — so the scripts don't change under you even if you fetch the kit
 from `main`. `make publish-kit` goes further and rewrites `KIT_REF` to the exact
 commit SHA in the OCI artifact. To pin a git run to a different release, use
@@ -170,7 +170,7 @@ skills are missing. Create the sandbox with `--skills=off` so the kit gets its
 own skills directory:
 
 ```bash
-sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.10.3 --skills=off claude .
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.10.4 --skills=off claude .
 ```
 
 `--skills=readwrite` also works, but the kit then writes its skills into the

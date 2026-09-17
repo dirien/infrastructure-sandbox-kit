@@ -15,7 +15,7 @@ the image reference with these same declarations, use the
 sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit" claude .
 
 # On the baked template (install is a fast no-op; kit just wires net/creds/MCP):
-sbx run --template infrastructure-sandbox:v0.10.3 --kit . claude .
+sbx run --template infrastructure-sandbox:v0.10.4 --kit . claude .
 
 # Validate / inspect:
 sbx kit validate ./            # or:  make validate   (from repo root)
