@@ -155,11 +155,26 @@ opened in the sandbox without a per-project `apm.yml`:
 
 | Materialized to | From the setup |
 |---|---|
-| `~/.claude/skills/*` | 35 pinned skills |
+| `~/.claude/skills/*` | 36 skills (31 pinned deps + 5 local) and the `apm-lsp` LSP plugin |
 | `~/.claude/agents/*` | `executor`, `librarian`, `reviewer` subagents |
 | `~/.claude/rules/*` + a managed block in `~/.claude/CLAUDE.md` | the instruction rules |
 | `~/.claude/settings.json` | the PreToolUse guard + PostToolUse secret-scan/format hooks, rewritten to absolute paths so they fire in any workspace |
 | `~/.claude.json` (user scope) | the `pulumi` MCP server |
+
+`~/.claude/skills` is not always a plain directory. `sbx` can mount its shared
+skills store there, one host directory shared by every sandbox and read-only by
+default, and the kit cannot write into a read-only mount. Provisioning then skips
+the skills and the `apm-lsp` plugin with a warning. The toolchain, agents, rules,
+hooks and MCP still install, and the managed `CLAUDE.md` block records that the
+skills are missing. Create the sandbox with `--skills=off` so the kit gets its
+own skills directory:
+
+```bash
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.10.3 --skills=off claude .
+```
+
+`--skills=readwrite` also works, but the kit then writes its skills into the
+shared store, where they outlive the sandbox and appear in unrelated ones.
 
 To update it later, run `git -C ~/.claude-apm-setup pull && ISK_FORCE=1 ~/.local/share/infrastructure-sandbox-kit/scripts/provision.sh`.
 

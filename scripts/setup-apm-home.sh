@@ -88,14 +88,33 @@ log "running 'apm install --frozen' in ${SETUP_DIR}"
 # (microsoft/apm#2733), which the skills copy below already picks up since it
 # lives under .claude/skills/. No separate LSP step is needed any more; just
 # clean up a stale .lsp.json from a pre-0.29.1 run of this same script.
-mkdir -p "$CLAUDE_HOME/skills" "$CLAUDE_HOME/agents" "$CLAUDE_HOME/rules"
-[ -d "$SETUP_DIR/.claude/skills" ] && cp -a "$SETUP_DIR/.claude/skills/." "$CLAUDE_HOME/skills/"
+#
+# ~/.claude/skills may be sbx's shared skills store rather than a plain directory,
+# and sbx mounts that store read-only by default (`sbx run --skills=readonly`).
+# Copying into it fails, which under `set -e` used to abort the whole provisioning
+# run. Probe it first and degrade instead: the toolchain, agents, rules, hooks and
+# MCP still land; only the skills (and the apm-lsp plugin among them) are skipped.
+mkdir -p "$CLAUDE_HOME/agents" "$CLAUDE_HOME/rules"
+skills_installed=1
+skills_probe="$CLAUDE_HOME/skills/.isk-write-probe.$$"
+if mkdir -p "$CLAUDE_HOME/skills" 2>/dev/null && touch "$skills_probe" 2>/dev/null; then
+  rm -f "$skills_probe"
+  [ -d "$SETUP_DIR/.claude/skills" ] && cp -a "$SETUP_DIR/.claude/skills/." "$CLAUDE_HOME/skills/"
+else
+  skills_installed=0
+  warn "${CLAUDE_HOME}/skills is read-only (sbx shared skills store; --skills=readonly is the default), so the APM skills and the apm-lsp plugin were NOT installed. Recreate the sandbox with 'sbx run --skills=off' to get them."
+fi
 [ -d "$SETUP_DIR/.claude/agents" ] && cp -a "$SETUP_DIR/.claude/agents/." "$CLAUDE_HOME/agents/"
 [ -d "$SETUP_DIR/.claude/rules" ]  && cp -a "$SETUP_DIR/.claude/rules/."  "$CLAUDE_HOME/rules/"
 rm -f "$CLAUDE_HOME/.lsp.json"
-skill_count=$(find "$CLAUDE_HOME/skills" -maxdepth 1 -mindepth 1 -type d ! -name apm-lsp | wc -l)
-log "mirrored ${skill_count} skills, $(find "$CLAUDE_HOME/agents" -maxdepth 1 -name '*.md' | wc -l) agents into ${CLAUDE_HOME}"
-[ -d "$CLAUDE_HOME/skills/apm-lsp" ] && log "wired the apm-lsp LSP plugin (run /reload-plugins or restart Claude Code to activate LSP servers)"
+agent_count=$(find "$CLAUDE_HOME/agents" -maxdepth 1 -name '*.md' | wc -l)
+if [ "$skills_installed" = 1 ]; then
+  skill_count=$(find "$CLAUDE_HOME/skills" -maxdepth 1 -mindepth 1 -type d ! -name apm-lsp | wc -l)
+  log "mirrored ${skill_count} skills, ${agent_count} agents into ${CLAUDE_HOME}"
+  [ -d "$CLAUDE_HOME/skills/apm-lsp" ] && log "wired the apm-lsp LSP plugin (run /reload-plugins or restart Claude Code to activate LSP servers)"
+else
+  log "mirrored ${agent_count} agents into ${CLAUDE_HOME} (skills skipped: read-only skills store)"
+fi
 # --- 5. Managed block in ~/.claude/CLAUDE.md importing the rules -----------
 CLAUDE_MD="$CLAUDE_HOME/CLAUDE.md"
 BEGIN="<!-- infrastructure-sandbox-kit:begin -->"
@@ -110,7 +129,13 @@ awk -v b="$BEGIN" -v e="$END" '
   cat "$tmp_md"
   printf '%s\n' "$BEGIN"
   printf '# APM setup (dirien/my-claude-apm-setup)\n\n'
-  printf 'Skills, subagents and guardrail hooks from this setup are active globally.\n'
+  if [ "$skills_installed" = 1 ]; then
+    printf 'Skills, subagents and guardrail hooks from this setup are active globally.\n'
+  else
+    printf 'Subagents and guardrail hooks from this setup are active globally. Its skills are NOT\n'
+    printf 'installed: %s/skills was mounted read-only (the sbx shared skills store) when this\n' "$CLAUDE_HOME"
+    printf "sandbox was created. Recreate it with \`sbx run --skills=off\` to get them.\n"
+  fi
   printf 'Project rules imported from this setup:\n\n'
   for r in "$CLAUDE_HOME"/rules/*.md; do
     [ -e "$r" ] || continue
