@@ -6,7 +6,7 @@ Pulumi credential, the environment defaults, the setup steps and the agent
 instructions. One `--kit` flag brings up the whole IaC workstation:
 
 ```bash
-sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.10.0 infrastructure-sandbox .
+sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.10.1 infrastructure-sandbox .
 ```
 
 A sandbox kit defines its own agent, named after the kit, and `sbx run`
@@ -16,7 +16,7 @@ Code, because that is what the pinned image ships. To see what the kit
 declares:
 
 ```bash
-sbx kit inspect ghcr.io/dirien/infrastructure-sandbox-kit:v0.10.0 --json
+sbx kit inspect ghcr.io/dirien/infrastructure-sandbox-kit:v0.10.1 --json
 ```
 
 ## Which artifact do I want?
