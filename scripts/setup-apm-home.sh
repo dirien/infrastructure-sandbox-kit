@@ -27,7 +27,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 APM_REPO="${ISK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
 APM_REF="${ISK_APM_SETUP_REF:-v0.6.8}"
-APM_VERSION="${ISK_APM_VERSION:-0.30.0}"
+APM_VERSION="${ISK_APM_VERSION:-0.31.0}"
 SETUP_DIR="${ISK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
 CLAUDE_HOME="$HOME/.claude"
 
