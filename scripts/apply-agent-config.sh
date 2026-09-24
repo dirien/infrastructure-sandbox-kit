@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# apply-agent-config.sh — (re)apply the APM guardrail hooks and MCP servers into
-# the agent's user-scope Claude config.
+# apply-agent-config.sh — (re)apply the APM guardrail hooks, status line and MCP
+# servers into the agent's user-scope Claude config.
 #
 # Docker reseeds ~/.claude/settings.json and ~/.claude.json when it creates a
 # sandbox, which wipes anything the image baked in. So this runs as a
@@ -78,6 +78,16 @@ print("[infrastructure-sandbox-kit] wired guardrail hooks -> " + dst_path)
 PY
 fi
 
+# --- Status line into ~/.claude/settings.json -------------------------------
+# my-claude-apm-setup (v0.6.9+) ships an idempotent installer that copies its
+# status line script to ~/.claude/apm-statusline.sh and points statusLine at it.
+# Its post-install step already ran during provisioning, but the reseed wipes the
+# setting, so re-run it here. It leaves a user-configured statusLine alone and
+# never fails; an older setup without the script just skips this.
+if [ -f "$SETUP_DIR/scripts/install-statusline.sh" ]; then
+  CLAUDE_CONFIG_DIR="$CLAUDE_HOME" sh "$SETUP_DIR/scripts/install-statusline.sh" || true
+fi
+
 # --- MCP servers at user scope ---------------------------------------------
 if command -v claude >/dev/null 2>&1 && [ -f "$SETUP_DIR/.mcp.json" ]; then
   while IFS=$'\t' read -r name cfg; do
@@ -98,4 +108,4 @@ PY
 )
 fi
 
-log "agent config applied (hooks + MCP)"
+log "agent config applied (hooks + status line + MCP)"

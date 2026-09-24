@@ -11,7 +11,7 @@
 #   ~/.claude/agents/*         <- executor / librarian / reviewer subagents (durable)
 #   ~/.claude/rules/*          <- the instruction rules (durable)
 #   ~/.claude/CLAUDE.md        <- a managed block importing those rules
-#   ~/.claude/settings.json    <- guardrail hooks     (via apply-agent-config.sh)
+#   ~/.claude/settings.json    <- guardrail hooks + status line (via apply-agent-config.sh)
 #   ~/.claude.json mcpServers  <- pulumi              (via apply-agent-config.sh)
 #
 # The settings.json/.claude.json parts are re-applied on every sandbox start by
@@ -26,7 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 
 APM_REPO="${ISK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
-APM_REF="${ISK_APM_SETUP_REF:-v0.6.8}"
+APM_REF="${ISK_APM_SETUP_REF:-v0.6.9}"
 APM_VERSION="${ISK_APM_VERSION:-0.31.0}"
 SETUP_DIR="${ISK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
 CLAUDE_HOME="$HOME/.claude"
@@ -145,9 +145,9 @@ awk -v b="$BEGIN" -v e="$END" '
 } > "$CLAUDE_MD"
 rm -f "$tmp_md"
 
-# --- 6. Apply guardrail hooks + MCP (shared with the setup.startup step) --
-# Runs the same idempotent apply that fires on every sandbox start, so the hooks
-# and MCP servers are present right after provisioning too.
+# --- 6. Apply guardrail hooks, status line + MCP (shared with setup.startup) --
+# Runs the same idempotent apply that fires on every sandbox start, so the hooks,
+# status line and MCP servers are present right after provisioning too.
 ISK_APM_SETUP_DIR="$SETUP_DIR" bash "$SCRIPT_DIR/apply-agent-config.sh"
 
 log "APM home setup complete"
