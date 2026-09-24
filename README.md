@@ -27,6 +27,9 @@ The sandbox comes with:
   subagents, the instruction rules, and two guardrail hooks. One blocks
   destructive shell commands; the other scans edits for secrets and formats
   them.
+- A colored Claude Code status line (directory, git branch, model, context
+  use) from the APM setup, re-applied on every start. A `statusLine` you set
+  yourself is left alone.
 
 ## Three ways to use it
 
@@ -192,7 +195,7 @@ infrastructure-sandbox-kit/
 │   ├── install-clouds.sh      #   AWS (pinned SHA) + Azure/gcloud (GPG apt), per-component
 │   ├── install-toolchains.sh  #   gopls / tsserver / pyright / golangci-lint (+ optional .NET)
 │   ├── setup-apm-home.sh      #   APM + my-claude-apm-setup into ~/.claude
-│   ├── apply-agent-config.sh  #   (re)apply guardrail hooks + MCP (idempotent)
+│   ├── apply-agent-config.sh  #   (re)apply hooks + status line + MCP (idempotent)
 │   ├── provision.sh           #   orchestrator (sentinel-guarded, idempotent)
 │   ├── startup.sh             #   setup.startup: re-apply config + retry missing clouds
 │   └── push-kit.sh            #   publish the kit to an OCI registry
@@ -212,7 +215,7 @@ infrastructure-sandbox-kit/
 | Helm | `4.2.4` | same |
 | AWS CLI v2 | `2.36.34` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
-| my-claude-apm-setup | `v0.6.8` | `ISK_APM_SETUP_REF` |
+| my-claude-apm-setup | `v0.6.9` | `ISK_APM_SETUP_REF` |
 | APM CLI | `0.31.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 

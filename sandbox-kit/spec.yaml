@@ -122,7 +122,7 @@ setup:
         export ISK_AZ_APT_DIST="noble"       # Microsoft azure-cli repo dist (no 'resolute'/26.04 yet)
         export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
         export ISK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
-        export ISK_APM_SETUP_REF="v0.6.8"
+        export ISK_APM_SETUP_REF="v0.6.9"
         export ISK_APM_VERSION="0.31.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
         export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
         KIT_REPO="dirien/infrastructure-sandbox-kit"
@@ -143,12 +143,12 @@ setup:
   startup:
     # Runs on EVERY sandbox start (argv form — startup commands are not
     # shell-interpreted in v2). Docker reseeds ~/.claude/settings.json and
-    # ~/.claude.json at create time, so this re-applies the guardrail hooks + MCP
+    # ~/.claude.json at create time, so this re-applies the guardrail hooks, status line + MCP
     # servers (idempotent) and retries any cloud CLI that didn't install at
     # create time. Both steps are idempotent and non-fatal. No-op if the scripts
     # aren't present.
     - user: "1000"
-      description: "Re-apply APM hooks + MCP and retry any missing cloud CLI (idempotent)"
+      description: "Re-apply APM hooks, status line + MCP and retry any missing cloud CLI (idempotent)"
       command:
         - bash
         - -lc
