@@ -24,9 +24,11 @@ The sandbox comes with:
 - The APM setup in `~/.claude` for every workspace: 36 skills (including the
   official Pulumi skills, `terraform-skill` with its `code-intelligence`
   companion, `shellcheck-configuration`, `typescript-expert`, and `clarity`), 3
-  subagents, the instruction rules, and two guardrail hooks. One blocks
-  destructive shell commands; the other scans edits for secrets and formats
-  them.
+  subagents, the instruction rules, two guardrail hooks, and the rtk hook. One
+  guardrail blocks destructive shell commands; the other scans edits for secrets
+  and formats them. The rtk hook compresses command output before the agent
+  reads it, except inside Claude Code worktrees (see
+  [Notes and limitations](#notes-and-limitations)).
 - A colored Claude Code status line (directory, git branch, model, context
   use) from the APM setup, re-applied on every start. A `statusLine` you set
   yourself is left alone.
@@ -161,7 +163,7 @@ opened in the sandbox without a per-project `apm.yml`:
 | `~/.claude/skills/*` | 36 skills (31 pinned deps + 5 local) and the `apm-lsp` LSP plugin |
 | `~/.claude/agents/*` | `executor`, `librarian`, `reviewer` subagents |
 | `~/.claude/rules/*` + a managed block in `~/.claude/CLAUDE.md` | the instruction rules |
-| `~/.claude/settings.json` | the PreToolUse guard + PostToolUse secret-scan/format hooks, rewritten to absolute paths so they fire in any workspace |
+| `~/.claude/settings.json` | the guard and rtk hooks (PreToolUse) and the secret-scan/format hook (PostToolUse), rewritten to absolute paths so they fire in any workspace |
 | `~/.claude.json` (user scope) | the `pulumi` MCP server |
 
 `~/.claude/skills` is not always a plain directory. `sbx` can mount its shared
@@ -179,6 +181,14 @@ sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.10.6 --skills=off claude .
 `--skills=readwrite` also works, but the kit then writes its skills into the
 shared store, where they outlive the sandbox and appear in unrelated ones.
 
+Docker rewrites `~/.claude/settings.json` when it creates a sandbox, so
+`apply-agent-config.sh` writes the hooks back on every start. Before it does,
+it removes any hook that came from the setup but isn't in the current version,
+so a renamed or replaced hook doesn't keep running next to the new one. It
+treats a hook as the setup's when its command points into
+`~/.claude-apm-setup` or is a bare `rtk hook claude`. Hooks you add yourself
+are kept.
+
 To update it later, run `git -C ~/.claude-apm-setup pull && ISK_FORCE=1 ~/.local/share/infrastructure-sandbox-kit/scripts/provision.sh`.
 
 ## Layout
@@ -195,7 +205,7 @@ infrastructure-sandbox-kit/
 │   ├── install-clouds.sh      #   AWS (pinned SHA) + Azure/gcloud (GPG apt), per-component
 │   ├── install-toolchains.sh  #   gopls / tsserver / pyright / golangci-lint (+ optional .NET)
 │   ├── setup-apm-home.sh      #   APM + my-claude-apm-setup into ~/.claude
-│   ├── apply-agent-config.sh  #   (re)apply hooks + status line + MCP (idempotent)
+│   ├── apply-agent-config.sh  #   (re)apply hooks + status line + MCP, drop stale setup hooks (idempotent)
 │   ├── provision.sh           #   orchestrator (sentinel-guarded, idempotent)
 │   ├── startup.sh             #   setup.startup: re-apply config + retry missing clouds
 │   └── push-kit.sh            #   publish the kit to an OCI registry
@@ -217,6 +227,7 @@ infrastructure-sandbox-kit/
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
 | my-claude-apm-setup | `v0.6.10` | `ISK_APM_SETUP_REF` |
 | APM CLI | `0.31.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
+| sbx (publish CI only) | `v0.46.0` | `SBX_RELEASE` in `.github/workflows/publish-kit.yaml` |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 
 `make help` lists every target. Validate with `make validate` (`sbx kit validate ./kit`).
@@ -253,6 +264,20 @@ collection (Firecrawl, mem0, SurrealDB, Grafana, Dagger, VS Code, and others):
   The v2 loader is strict — leftover v1 fields are decode errors — while v1 kits
   still load through a legacy path. `sbx` is a host tool that isn't available in
   every environment, so validate on your host with `sbx kit validate ./kit`.
+  Since sbx v0.47.0, `sbx kit validate` also needs the sbx daemon running and
+  `sbx login`, so `make validate` fails unless the daemon is running and you
+  are signed in
+  ([docker/sbx-releases#685](https://github.com/docker/sbx-releases/issues/685)).
+  The publish workflow pins sbx v0.46.0 for this reason. A dev build adds
+  `sbx kit validate --offline`, but no release ships it yet.
+- The rtk hook from the APM setup doesn't rewrite commands inside Claude Code
+  worktrees (`.claude/worktrees/`, used by `claude --worktree` and worktree
+  subagents). Claude Code refuses git in an isolated worktree when a launcher
+  wraps it, so `rtk git status` would fail there
+  ([rtk-ai/rtk#3864](https://github.com/rtk-ai/rtk/issues/3864)). Command
+  output in those sessions is uncompressed. Don't run `rtk init -g` in the
+  sandbox: it registers a bare `rtk hook claude`, which rewrites in worktrees
+  again until the next sandbox start removes it.
 
 ## License
 
