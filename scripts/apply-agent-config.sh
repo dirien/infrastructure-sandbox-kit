@@ -28,6 +28,13 @@ fi
 # The APM-generated hooks reference ${CLAUDE_PROJECT_DIR:-.}/scripts/*.sh; rewrite
 # to the absolute setup path so they fire in any workspace, then merge (dedup by
 # event+matcher+command) into whatever user settings already exist.
+#
+# Before merging, drop setup-owned hooks the current setup no longer declares, so
+# a hook the setup renamed or replaced doesn't keep running next to its successor.
+# "Setup-owned" means the command points into $SETUP_DIR, or it is a bare
+# `rtk hook claude`: setups before v0.6.10 inlined that call, and `rtk init -g`
+# writes the same one. Left in place, it rewrites `git` to `rtk git` inside Claude
+# Code worktrees, where the isolation check refuses it (rtk-ai/rtk#3864).
 SRC_SETTINGS="$SETUP_DIR/.claude/settings.json"
 if [ -f "$SRC_SETTINGS" ]; then
   SETUP_DIR="$SETUP_DIR" DST="$CLAUDE_HOME/settings.json" SRC="$SRC_SETTINGS" python3 - <<'PY'
@@ -49,6 +56,29 @@ dst.setdefault("hooks", {})
 
 def rewrite(cmd: str) -> str:
     return cmd.replace("${CLAUDE_PROJECT_DIR:-.}", setup_dir).replace("$CLAUDE_PROJECT_DIR", setup_dir)
+
+def setup_owned(cmd: str) -> bool:
+    return setup_dir in cmd or "rtk hook claude" in cmd
+
+wanted = {
+    (event, g.get("matcher", ""), rewrite(h.get("command", "")))
+    for event, groups in (src.get("hooks") or {}).items()
+    for g in groups for h in (g.get("hooks") or [])
+}
+for event, groups in list(dst["hooks"].items()):
+    kept_groups = []
+    for g in groups:
+        kept = [
+            h for h in (g.get("hooks") or [])
+            if not setup_owned(h.get("command", ""))
+            or (event, g.get("matcher", ""), h.get("command", "")) in wanted
+        ]
+        if len(kept) < len(g.get("hooks") or []):
+            print("[infrastructure-sandbox-kit] dropped %d stale setup hook(s) from %s"
+                  % (len(g["hooks"]) - len(kept), event))
+        if kept:
+            kept_groups.append({**g, "hooks": kept})
+    dst["hooks"][event] = kept_groups
 
 for event, groups in (src.get("hooks") or {}).items():
     existing = dst["hooks"].setdefault(event, [])
