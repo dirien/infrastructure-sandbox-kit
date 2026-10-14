@@ -218,15 +218,15 @@ infrastructure-sandbox-kit/
 
 | Component | Default | Where to change |
 |---|---|---|
-| Pulumi CLI | `3.260.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
-| Terraform | `1.16.0` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
-| OpenTofu | `1.12.6` | same |
-| kubectl | `1.37.0` | same |
-| Helm | `4.2.4` | same |
-| AWS CLI v2 | `2.36.34` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
-| Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`noble`) |
-| my-claude-apm-setup | `v0.6.10` | `ISK_APM_SETUP_REF` |
-| APM CLI | `0.31.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
+| Pulumi CLI | `3.269.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
+| Terraform | `1.16.6` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
+| OpenTofu | `1.13.1` | same |
+| kubectl | `1.37.1` | same |
+| Helm | `4.3.0` | same |
+| AWS CLI v2 | `2.38.1` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
+| Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`resolute`) |
+| my-claude-apm-setup | `v0.6.11` | `ISK_APM_SETUP_REF` |
+| APM CLI | `0.33.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
 | sbx (publish CI only) | `v0.46.0` | `SBX_RELEASE` in `.github/workflows/publish-kit.yaml` |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 
