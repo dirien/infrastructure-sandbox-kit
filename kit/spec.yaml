@@ -111,7 +111,7 @@ setup:
       command: |
         set -eu
         # --- pins (edit to taste) ---
-        export ISK_PULUMI_VERSION="3.269.0"
+        export ISK_PULUMI_VERSION="3.268.0"
         export ISK_TERRAFORM_VERSION="1.16.6"
         export ISK_OPENTOFU_VERSION="1.13.1"
         export ISK_KUBECTL_VERSION="1.37.1"

@@ -19,7 +19,7 @@ REGISTRY    ?= ghcr.io/dirien       # OCI registry for `make publish-kit`
 IMAGE_TAGS = -t $(IMAGE):$(VERSION) -t $(IMAGE):latest
 
 # Pins forwarded to the image build (mirror the defaults in kit/spec.yaml).
-PULUMI_VERSION     ?= 3.269.0
+PULUMI_VERSION     ?= 3.268.0
 TERRAFORM_VERSION  ?= 1.16.6
 OPENTOFU_VERSION   ?= 1.13.1
 KUBECTL_VERSION    ?= 1.37.1
