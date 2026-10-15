@@ -16,7 +16,7 @@ ARG BASE=docker/sandbox-templates:claude-code-docker
 FROM ${BASE}
 
 # Pin everything; override with --build-arg as needed.
-ARG ISK_PULUMI_VERSION=3.269.0
+ARG ISK_PULUMI_VERSION=3.268.0
 ARG ISK_TERRAFORM_VERSION=1.16.6
 ARG ISK_OPENTOFU_VERSION=1.13.1
 ARG ISK_KUBECTL_VERSION=1.37.1

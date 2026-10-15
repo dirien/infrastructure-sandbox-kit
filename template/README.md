@@ -31,7 +31,7 @@ Build args (all pinned; override with `--build-arg`):
 | Arg | Default | Purpose |
 |---|---|---|
 | `BASE` | `docker/sandbox-templates:claude-code-docker` | base sandbox image |
-| `ISK_PULUMI_VERSION` | `3.269.0` | Pulumi CLI |
+| `ISK_PULUMI_VERSION` | `3.268.0` | Pulumi CLI |
 | `ISK_TERRAFORM_VERSION` | `1.16.6` | Terraform |
 | `ISK_OPENTOFU_VERSION` | `1.13.1` | OpenTofu |
 | `ISK_KUBECTL_VERSION` | `1.37.1` | kubectl |
