@@ -19,16 +19,16 @@ REGISTRY    ?= ghcr.io/dirien       # OCI registry for `make publish-kit`
 IMAGE_TAGS = -t $(IMAGE):$(VERSION) -t $(IMAGE):latest
 
 # Pins forwarded to the image build (mirror the defaults in kit/spec.yaml).
-PULUMI_VERSION     ?= 3.268.0
-TERRAFORM_VERSION  ?= 1.16.6
-OPENTOFU_VERSION   ?= 1.13.1
-KUBECTL_VERSION    ?= 1.37.1
-HELM_VERSION       ?= 4.3.0
-AWSCLI_VERSION     ?= 2.38.1
+PULUMI_VERSION     ?= 3.273.0
+TERRAFORM_VERSION  ?= 1.17.1
+OPENTOFU_VERSION   ?= 1.13.2
+KUBECTL_VERSION    ?= 1.37.2
+HELM_VERSION       ?= 4.3.1
+AWSCLI_VERSION     ?= 2.39.3
 AZ_APT_DIST        ?= resolute
 INSTALL_CLOUDS     ?= 1
-APM_SETUP_REF      ?= v0.6.11
-APM_VERSION        ?= 0.33.0
+APM_SETUP_REF      ?= v0.6.12
+APM_VERSION        ?= 0.35.0
 INSTALL_DOTNET     ?= 0
 DOTNET_CHANNEL     ?= 8.0
 

@@ -21,10 +21,10 @@ The sandbox comes with:
   only ever sees `PULUMI_ACCESS_TOKEN=proxy-managed`.
 - The `pulumi` MCP server at user scope (registry lookups, schema and code
   validation, Neo).
-- The APM setup in `~/.claude` for every workspace: 36 skills (including the
+- The APM setup in `~/.claude` for every workspace: 37 skills (including the
   official Pulumi skills, `terraform-skill` with its `code-intelligence`
-  companion, `shellcheck-configuration`, `typescript-expert`, and `clarity`), 3
-  subagents, the instruction rules, two guardrail hooks, and the rtk hook. One
+  companion, `shellcheck-configuration`, `typescript-expert`, `clarity`, and
+  `ai-slop-detector`), 3 subagents, the instruction rules, two guardrail hooks, and the rtk hook. One
   guardrail blocks destructive shell commands; the other scans edits for secrets
   and formats them. The rtk hook compresses command output before the agent
   reads it, except inside Claude Code worktrees (see
@@ -160,7 +160,7 @@ opened in the sandbox without a per-project `apm.yml`:
 
 | Materialized to | From the setup |
 |---|---|
-| `~/.claude/skills/*` | 36 skills (31 pinned deps + 5 local) and the `apm-lsp` LSP plugin |
+| `~/.claude/skills/*` | 37 skills (32 pinned deps + 5 local) and the `apm-lsp` LSP plugin |
 | `~/.claude/agents/*` | `executor`, `librarian`, `reviewer` subagents |
 | `~/.claude/rules/*` + a managed block in `~/.claude/CLAUDE.md` | the instruction rules |
 | `~/.claude/settings.json` | the guard and rtk hooks (PreToolUse) and the secret-scan/format hook (PostToolUse), rewritten to absolute paths so they fire in any workspace |
@@ -218,15 +218,15 @@ infrastructure-sandbox-kit/
 
 | Component | Default | Where to change |
 |---|---|---|
-| Pulumi CLI | `3.268.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
-| Terraform | `1.16.6` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
-| OpenTofu | `1.13.1` | same |
-| kubectl | `1.37.1` | same |
-| Helm | `4.3.0` | same |
-| AWS CLI v2 | `2.38.1` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
+| Pulumi CLI | `3.273.0` | `scripts/install-pulumi.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
+| Terraform | `1.17.1` | `scripts/install-iac.sh`, `kit/spec.yaml`, `Makefile` |
+| OpenTofu | `1.13.2` | same |
+| kubectl | `1.37.2` | same |
+| Helm | `4.3.1` | same |
+| AWS CLI v2 | `2.39.3` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`resolute`) |
-| my-claude-apm-setup | `v0.6.11` | `ISK_APM_SETUP_REF` |
-| APM CLI | `0.33.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
+| my-claude-apm-setup | `v0.6.12` | `ISK_APM_SETUP_REF` |
+| APM CLI | `0.35.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
 | sbx (publish CI only) | `v0.46.0` | `SBX_RELEASE` in `.github/workflows/publish-kit.yaml` |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 
