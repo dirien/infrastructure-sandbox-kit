@@ -13,10 +13,14 @@ declarations, use the [`../sandbox-kit`](../sandbox-kit) variant.
 ```bash
 # From GHCR, git, or this directory (sbx builds git and local kits in its kit builder).
 # --skills=off gives the kit its own skills directory; without it the APM skills
-# don't install, because sbx mounts its shared skills store read-only (see the repo README).
-sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off claude .
-sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.0" --skills=off claude .
-sbx run --kit ./ --skills=off claude .     # or: make run-kit   (from repo root)
+# don't install, because sbx mounts its shared skills store read-only.
+# --name picks a sandbox that doesn't exist yet; without it sbx targets the
+# directory's default claude-<dir> sandbox and refuses the kit if that one
+# already exists (see the repo README).
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off --name "iac-${PWD##*/}" claude .
+sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.0" --skills=off --name "iac-${PWD##*/}" claude .
+sbx run --kit ./ --skills=off --name "iac-${PWD##*/}" claude .     # or: make run-kit   (from repo root)
+sbx run --name "iac-${PWD##*/}"           # re-attach later, without kit flags
 
 # Validate / build / inspect:
 sbx kit validate ./                        # or: make validate   (needs the sbx daemon)
@@ -76,8 +80,10 @@ sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com
   creates a sandbox, so this re-applies the APM guardrail hooks, status line and
   MCP servers (via `apply-agent-config.sh`), and retries any cloud CLI that
   didn't install at create time. Both are idempotent.
-- `agent-context@1` / `@2`: the IaC guidance surfaced to Claude. sbx picks the
-  version the workload accepts.
+- `agent-context@2`: the IaC guidance surfaced to Claude (sbx 0.51+). The kit
+  declares one version only: sbx can't resolve a mixin that offers competing
+  agent-context versions on its own, which breaks `sbx run` against an
+  existing sandbox with a misleading error.
 
 Cloud CLI installs are per-component and non-fatal: a flaky Azure/Google apt repo
 never blocks `sbx create`. The sandbox comes up, and `startup.sh` fills in the

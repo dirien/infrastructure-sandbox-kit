@@ -112,7 +112,7 @@ run: ## Run the one-flag sandbox kit (prebuilt template image, tools pre-baked)
 
 .PHONY: run-kit
 run-kit: ## Run the built-in claude agent + the v3 mixin (zero-build; installs at create time)
-	sbx run claude --kit $(KIT) --skills=off $(WORKDIR)
+	sbx run claude --kit $(KIT) --skills=off --name iac-$(notdir $(abspath $(WORKDIR))) $(WORKDIR)
 
 ## --- Maintenance -----------------------------------------------------------
 
