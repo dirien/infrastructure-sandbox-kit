@@ -12,13 +12,15 @@ VERSION     ?= $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.10.
 DOCKERFILE  ?= template/Dockerfile
 PLATFORM    ?=                      # e.g. linux/arm64 or linux/amd64,linux/arm64
 KIT         ?= ./kit
+KIT_DESCRIPTOR ?= infrastructure.yaml
+SANDBOX_KIT ?= ./sandbox-kit
 WORKDIR     ?= .
 REGISTRY    ?= ghcr.io/dirien       # OCI registry for `make publish-kit`
 
 # Every build/push/load stamps the image with the version tag and latest.
 IMAGE_TAGS = -t $(IMAGE):$(VERSION) -t $(IMAGE):latest
 
-# Pins forwarded to the image build (mirror the defaults in kit/spec.yaml).
+# Pins forwarded to the image build (mirror the defaults in kit/infrastructure.yaml).
 PULUMI_VERSION     ?= 3.273.0
 TERRAFORM_VERSION  ?= 1.17.1
 OPENTOFU_VERSION   ?= 1.13.2
@@ -85,33 +87,38 @@ publish-kit: ## Push the kit to an OCI registry as :$(VERSION) and :latest; need
 	REGISTRY=$(REGISTRY) TAG=$(VERSION) ./scripts/push-kit.sh
 	REGISTRY=$(REGISTRY) TAG=latest    ./scripts/push-kit.sh
 
-## --- Kit (zero-build mixin) ------------------------------------------------
+## --- Kits (v3 mixin in kit/, v2 sandbox kit in sandbox-kit/) ---------------
 
 .PHONY: validate
-validate: ## Validate the kit spec with sbx
+validate: ## Validate both kits (the v3 mixin builds in sbx's kit builder; needs the daemon)
 	sbx kit validate $(KIT)
+	sbx kit validate --offline $(SANDBOX_KIT)
+
+.PHONY: build-kit
+build-kit: ## Build the v3 mixin with buildx (the sandbox-kit frontend validates it; no push)
+	docker buildx build $(KIT) -f $(KIT)/$(KIT_DESCRIPTOR) --platform linux/amd64,linux/arm64 --output type=cacheonly
 
 .PHONY: inspect
-inspect: ## Show the normalized (canonical) kit spec
+inspect: ## Show the v3 mixin's kit details
 	sbx kit inspect $(KIT) --json
 
 ## --- Run -------------------------------------------------------------------
 
 .PHONY: run
-run: ## Run Claude on the baked template + kit (fast: tools are pre-baked)
-	sbx run --template $(IMAGE):$(VERSION) --kit $(KIT) claude $(WORKDIR)
+run: ## Run the one-flag sandbox kit (prebuilt template image, tools pre-baked)
+	sbx run $(SANDBOX_KIT) $(WORKDIR)
 
 .PHONY: run-kit
-run-kit: ## Run Claude on the stock image + kit (zero-build; installs at create time)
-	sbx run --kit $(KIT) claude $(WORKDIR)
+run-kit: ## Run the built-in claude agent + the v3 mixin (zero-build; installs at create time)
+	sbx run claude --kit $(KIT) $(WORKDIR)
 
 ## --- Maintenance -----------------------------------------------------------
 
 .PHONY: pin
-pin: ## Pin the kit's KIT_REF to REF=<tag-or-sha> for reproducible zero-build runs
+pin: ## Pin both kits' KIT_REF to REF=<tag-or-sha> for reproducible runs
 	@test -n "$(REF)" || { echo "usage: make pin REF=<tag-or-40-char-sha>"; exit 2; }
-	perl -0pi -e 's/(KIT_REF=")[^"]*(")/$${1}$(REF)$${2}/' kit/spec.yaml
-	@echo "pinned KIT_REF=$(REF) in kit/spec.yaml"
+	perl -0pi -e 's/(KIT_REF=")[^"]*(")/$${1}$(REF)$${2}/' $(KIT)/$(KIT_DESCRIPTOR) $(SANDBOX_KIT)/spec.yaml
+	@echo "pinned KIT_REF=$(REF) in $(KIT)/$(KIT_DESCRIPTOR) and $(SANDBOX_KIT)/spec.yaml"
 
 .PHONY: clean
 clean: ## Remove build artifacts and the local image (both tags)

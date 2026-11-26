@@ -69,7 +69,7 @@ apm_arch() {
 
 # fetch <url> <dest> — HTTPS-only download with retries; fails on any HTTP error.
 fetch() {
-  curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --retry-delay 2 -o "$2" "$1"
+  curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --retry-delay 2 --retry-connrefused -o "$2" "$1"
 }
 
 # verify_sha256 <file> <expected-hex> — abort unless the file matches.

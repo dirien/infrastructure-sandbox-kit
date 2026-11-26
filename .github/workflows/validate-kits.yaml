@@ -1,0 +1,57 @@
+name: Validate kits
+
+# Build-check both kits on every change, without publishing:
+#   * kit/         kit-spec v3 mixin: the docker/sandbox-kit:3 BuildKit frontend
+#                  builds the overlay and validates the descriptor.
+#   * sandbox-kit/ kit-spec v2 sandbox kit: `sbx kit validate --offline`.
+on:
+  push:
+    branches: [main]
+    paths:
+      - kit/**
+      - sandbox-kit/**
+      - scripts/push-kit.sh
+      - .github/workflows/validate-kits.yaml
+  pull_request:
+    paths:
+      - kit/**
+      - sandbox-kit/**
+      - scripts/push-kit.sh
+      - .github/workflows/validate-kits.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    env:
+      SBX_RELEASE: v0.54.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sbx
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download "$SBX_RELEASE" --repo docker/sbx-releases \
+            --pattern 'DockerSandboxes-linux-amd64-ubuntu2604.deb' --output /tmp/sbx.deb
+          sudo apt-get update
+          sudo apt-get install -y /tmp/sbx.deb
+          sbx version
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the v3 mixin (kit/)
+        run: |
+          docker buildx build kit -f kit/infrastructure.yaml \
+            --platform linux/amd64,linux/arm64 --output type=cacheonly
+
+      - name: Validate the v2 sandbox kit (sandbox-kit/)
+        run: |
+          set -euo pipefail
+          stage="$(mktemp -d)"
+          cp -a sandbox-kit/. "$stage/"
+          cp -a kit/files "$stage/files"
+          sbx kit validate --offline "$stage"
