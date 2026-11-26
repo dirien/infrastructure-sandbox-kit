@@ -106,12 +106,14 @@ log "running 'apm install --frozen' in ${SETUP_DIR}"
 # lives under .claude/skills/. No separate LSP step is needed any more; just
 # clean up a stale .lsp.json from a pre-0.29.1 run of this same script.
 #
-# ~/.claude/skills is wired to sbx's shared skills store. In the default
-# `--skills=readonly` mode (sbx >= 0.51) the directory stays writable but each
-# store skill is a read-only link inside it; older sbx releases mounted the whole
-# directory read-only. So copy skill by skill: a name already taken by a store
-# link keeps the store's version, and an unwritable directory skips the skills
-# (and the apm-lsp plugin among them) instead of aborting provisioning.
+# ~/.claude/skills is wired to sbx's shared skills store in the default
+# `--skills=readonly` mode. Depending on the sbx release and the store's
+# contents it is either a read-only mount (sbx 0.54.1 with the claude workload)
+# or a writable directory holding read-only links to the store's skills. So
+# copy skill by skill: a name already taken by a store link keeps the store's
+# version, and an unwritable directory skips the skills (and the apm-lsp plugin
+# among them) instead of aborting provisioning. `--skills=off` gives the
+# sandbox its own writable directory.
 mkdir -p "$CLAUDE_HOME/agents" "$CLAUDE_HOME/rules"
 skills_installed=1
 skills_skipped=""
@@ -131,7 +133,7 @@ if mkdir -p "$CLAUDE_HOME/skills" 2>/dev/null && touch "$skills_probe" 2>/dev/nu
   [ -z "$skills_skipped" ] || warn "kept the shared skills store's copy of:${skills_skipped}"
 else
   skills_installed=0
-  warn "${CLAUDE_HOME}/skills is read-only (sbx shared skills store), so the APM skills and the apm-lsp plugin were NOT installed. Recreate the sandbox with 'sbx run --skills=readonly' (sbx >= 0.51) or '--skills=off' to get them."
+  warn "${CLAUDE_HOME}/skills is read-only (sbx shared skills store), so the APM skills and the apm-lsp plugin were NOT installed. Recreate the sandbox with 'sbx run --skills=off' to get them."
 fi
 [ -d "$SETUP_DIR/.claude/agents" ] && cp -a "$SETUP_DIR/.claude/agents/." "$CLAUDE_HOME/agents/"
 [ -d "$SETUP_DIR/.claude/rules" ]  && cp -a "$SETUP_DIR/.claude/rules/."  "$CLAUDE_HOME/rules/"
@@ -163,7 +165,7 @@ awk -v b="$BEGIN" -v e="$END" '
   else
     printf 'Subagents and guardrail hooks from this setup are active globally. Its skills are NOT\n'
     printf 'installed: %s/skills was mounted read-only (the sbx shared skills store) when this\n' "$CLAUDE_HOME"
-    printf "sandbox was created. Recreate it with \`sbx run --skills=readonly\` or \`--skills=off\` to get them.\n"
+    printf "sandbox was created. Recreate it with \`sbx run --skills=off\` to get them.\n"
   fi
   printf 'Project rules imported from this setup:\n\n'
   for r in "$CLAUDE_HOME"/rules/*.md; do
