@@ -71,7 +71,7 @@ use the sandbox kit, which runs the same template image.
 
 ```bash
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
-sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.11.0 infrastructure-sandbox .
+sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.11.1 infrastructure-sandbox .
 ```
 
 The kit names the template image and carries every rule. A sandbox kit defines
@@ -91,10 +91,10 @@ straight from git or from a local clone. Pick whichever fits:
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
 
 # From the published kit on GHCR:
-sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off --name "iac-${PWD##*/}" claude .
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.1 --skills=off --name "iac-${PWD##*/}" claude .
 
 # Straight from this repo over git:
-sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.0" --skills=off --name "iac-${PWD##*/}" claude .
+sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.1" --skills=off --name "iac-${PWD##*/}" claude .
 
 # From a local clone (the kit lives under kit/):
 git clone https://github.com/dirien/infrastructure-sandbox-kit.git
@@ -113,7 +113,8 @@ Keep both flags:
   sandbox already exists, and sbx 0.54.1 refuses to add a kit to it. The error
   says the kit "resolve[s] only when it is composed with its workload" or that
   "--kit can only be used when creating a new sandbox". A name that isn't taken
-  always creates a new sandbox. `"iac-${PWD##*/}"` (bash/zsh) names it after the
+  always creates a new sandbox. (`--new` doesn't help here: sbx 0.54.1 supports
+  it only with `--cloud`.) `"iac-${PWD##*/}"` (bash/zsh) names it after the
   directory; any unused name works (letters, digits, hyphens, periods). To
   re-create the sandbox, `sbx rm` it first. A kit can only be added when the
   sandbox is created.
@@ -134,7 +135,7 @@ The kit installs the toolchain at create time, which takes a few minutes. Add
 
 Reproducibility: the kit fetches its provisioning scripts from `KIT_REF` in
 `kit/infrastructure.yaml`, which is pinned to an immutable release tag
-(`v0.11.0`), not a moving branch — so the scripts don't change under you even if
+(`v0.11.1`), not a moving branch — so the scripts don't change under you even if
 you fetch the kit from `main`. The published OCI artifact goes further:
 `scripts/push-kit.sh` rewrites `KIT_REF` to the exact commit SHA. To pin a git
 run to a different release, use `…&ref=<tag>`; `make pin REF=<tag>` sets

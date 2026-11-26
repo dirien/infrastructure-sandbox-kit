@@ -2,7 +2,7 @@
 # push-kit.sh — publish one of this repo's kits to an OCI registry.
 #
 #   ./scripts/push-kit.sh                    # push kit/ as :latest to ghcr.io/dirien/infrastructure-kit
-#   TAG=v0.11.0 ./scripts/push-kit.sh         # push a specific tag
+#   TAG=v0.11.1 ./scripts/push-kit.sh         # push a specific tag
 #   KIT_DIR=sandbox-kit KIT_NAME=infrastructure-sandbox-kit ./scripts/push-kit.sh
 #   REGISTRY=ghcr.io/you ./scripts/push-kit.sh
 #
