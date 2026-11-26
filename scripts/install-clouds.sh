@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # install-clouds.sh — AWS, Azure and Google Cloud CLIs, verified (never `curl|sh`):
 #   * AWS CLI v2  — pinned version + per-arch SHA256 (the official installer zip)
-#   * Azure CLI   — Microsoft apt repo, GPG-signed (dist pinned; see ISK_AZ_APT_DIST)
+#   * Azure CLI   — Microsoft apt repo, GPG-signed (dist from the OS; see ISK_AZ_APT_DIST)
 #   * gcloud      — Google Cloud apt repo, GPG-signed (codename-independent `cloud-sdk`)
 #
 # Per-component and non-fatal: each CLI installs independently and a failure only
@@ -22,8 +22,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 
 AWSCLI_VERSION="${ISK_AWSCLI_VERSION:-2.39.3}"
-AZ_APT_DIST="${ISK_AZ_APT_DIST:-resolute}"   # Microsoft azure-cli repo dist; matches the Ubuntu 26.04 (resolute) base
 DEB_ARCH="$(deb_arch)"
+
+# az_apt_dist — the Microsoft azure-cli repo dist. ISK_AZ_APT_DIST wins; otherwise
+# it follows the OS codename, so one script serves the Ubuntu 26.04 (resolute)
+# template and the Debian 13 (trixie) claude workload. Microsoft publishes no
+# trixie dist yet, so trixie uses the bookworm one (its az ships its own Python).
+az_apt_dist() {
+  if [ -n "${ISK_AZ_APT_DIST:-}" ]; then echo "$ISK_AZ_APT_DIST"; return; fi
+  local codename=""
+  # shellcheck disable=SC1091
+  [ -r /etc/os-release ] && codename="$(. /etc/os-release && echo "${VERSION_CODENAME:-}")"
+  case "$codename" in
+    trixie|forky|sid) echo "bookworm" ;;
+    "")               echo "resolute" ;;
+    *)                echo "$codename" ;;
+  esac
+}
+AZ_APT_DIST="$(az_apt_dist)"
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT

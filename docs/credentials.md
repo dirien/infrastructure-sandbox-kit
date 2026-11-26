@@ -6,8 +6,9 @@ how a stored secret is injected. `sbx secret set` reads the value interactively
 
 ## Pulumi Cloud token (wired by this kit)
 
-The kit declares a `pulumi` credential (`credentials[].service` in the v2 spec)
-whose `apiKey` block injects `Authorization: token <PAT>` on `api.pulumi.com`;
+Both kits declare a `pulumi` credential (a `credential@1` capability in the v3
+mixin, `credentials[].service` in the v2 sandbox kit) whose `apiKey` block
+injects `Authorization: token <PAT>` on `api.pulumi.com`;
 `proxyManaged: true` masks `PULUMI_ACCESS_TOKEN` in the container as a
 proxy-managed placeholder. The kit only declares the requirement — the value is
 bound from the host's secret store. Store the token:
@@ -27,7 +28,7 @@ proxy-managed placeholder.
 
 ## Anthropic (Claude Code itself)
 
-This kit runs the built-in `claude` agent, so `sbx` handles Claude's own
+The mixin runs the built-in `claude` agent, so `sbx` handles Claude's own
 authentication. If you haven't set it up on this host yet:
 
 ```bash
@@ -50,9 +51,18 @@ cloud's STS/OIDC endpoints to the network allow-list ([`network.md`](network.md)
 
 ### Option B: environment variables inside the sandbox
 
-`sbx run` has no `-e`/`--env` flag. To set container-resident variables (for
-example AWS's SigV4 credentials, which the proxy can't rewrite), write them to
-`/etc/sandbox-persistent.sh`, which is sourced on every shell in the sandbox:
+For container-resident variables (for example AWS's SigV4 credentials, which the
+proxy can't rewrite), pass them when you create the sandbox. `sbx run` and
+`sbx create` take `-e KEY=VALUE` (or a bare `-e KEY` to copy it from your host
+shell) and `--env-file`:
+
+```bash
+sbx run -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_REGION \
+  --kit ghcr.io/dirien/infrastructure-kit:v0.10.9 claude .
+```
+
+For a sandbox that already exists, write them to `/etc/sandbox-persistent.sh`,
+which is sourced on every shell in the sandbox:
 
 ```bash
 sbx exec -d <sandbox-name> bash -c \
@@ -67,8 +77,8 @@ You can also authenticate the CLIs directly in-session:
 - GCP: `gcloud auth activate-service-account --key-file=<path>`.
 - AWS: `aws configure` or `aws sso login`.
 
-Allow the relevant management/auth hosts in the kit's `permissions.network.allow`
-(see [`network.md`](network.md)).
+Allow the relevant management/auth hosts in the kit's network allow list (see
+[`network.md`](network.md)).
 
 ### Option C: proxy-injected header credentials
 

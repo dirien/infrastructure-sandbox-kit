@@ -11,9 +11,10 @@ description: >-
   `claude` agent (zero build).
 version: "0.10.9"
 
-# The declarative blocks below mirror kit/spec.yaml (the mixin). When you
-# change one, change both. The only intended differences are this header,
-# `kind`, `name`, the `sandbox:` block, and the missing mixin-only `requires`.
+# The declarative blocks below mirror kit/infrastructure.yaml (the kit-spec v3
+# mixin) in the v2 grammar. When you change one, change both. The intended
+# differences are this header, `kind`, `name`, the `sandbox:` block, the
+# Ubuntu apt hosts (the mixin's base is Debian), and the pinned az apt dist.
 sandbox:
   # The prebuilt multi-arch template (linux/amd64 + linux/arm64) with the IaC
   # toolchain baked in; see template/. The image pins its own tool versions,
@@ -122,8 +123,8 @@ setup:
         export ISK_AZ_APT_DIST="resolute"    # Microsoft azure-cli repo dist (matches the Ubuntu 26.04 base)
         export ISK_INSTALL_CLOUDS="1"        # set to "0" to skip AWS/Azure/gcloud (faster create)
         export ISK_APM_SETUP_REPO="dirien/my-claude-apm-setup"
-        export ISK_APM_SETUP_REF="v0.6.12"
-        export ISK_APM_VERSION="0.35.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
+        export ISK_APM_SETUP_REF="v0.7.0"
+        export ISK_APM_VERSION="0.39.0"     # apm CLI, pinned + SHA256-verified (bump deliberately)
         export ISK_INSTALL_DOTNET="0"        # set to "1" for Pulumi C#/.NET (also uncomment the .NET domains above)
         KIT_REPO="dirien/infrastructure-sandbox-kit"
         # Immutable ref the provisioning scripts are fetched from (reproducible). A

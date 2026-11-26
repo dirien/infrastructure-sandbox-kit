@@ -1,9 +1,12 @@
 name: Publish kit
 
-# Publish the mixin kit to GitHub Container Registry as an OCI artifact whenever
-# the kit changes on main (as :latest) and on version tags (as :vX.Y.Z). Modeled
-# on ajeetraina/sbx-kits-* CI, retargeted to ghcr.io (no extra secret — the
-# built-in GITHUB_TOKEN can push packages).
+# Publish both kits to GitHub Container Registry whenever they change on main
+# (as :latest) and on version tags (as :vX.Y.Z). The built-in GITHUB_TOKEN can
+# push packages, so no extra secret is needed.
+#   * kit/         kit-spec v3 mixin -> ghcr.io/<owner>/infrastructure-kit
+#                  (OCI image built by the docker/sandbox-kit:3 BuildKit frontend)
+#   * sandbox-kit/ kit-spec v2 sandbox kit -> ghcr.io/<owner>/infrastructure-sandbox-kit
+#                  (`sbx kit push`)
 on:
   push:
     branches: [main]
@@ -16,9 +19,9 @@ on:
   workflow_dispatch:
     inputs:
       sbx_release:
-        description: "docker/sbx-releases tag to install (must support kit-spec v2; 'latest' for the newest)"
+        description: "docker/sbx-releases tag to install ('latest' for the newest)"
         required: false
-        default: "v0.46.0"
+        default: "v0.54.1"
       tag:
         description: "OCI tag to publish"
         required: false
@@ -34,15 +37,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # sbx is pinned, not "latest": since v0.47.0, `sbx kit validate` needs a running
-      # daemon and an `sbx login`, neither of which this job has, so push-kit.sh fails
-      # with "not signed in to Docker" (docker/sbx-releases#685). v0.46.0 is the last
-      # release that validates offline. A dev build adds `sbx kit validate --offline`;
-      # once a release ships it, bump this pin and pass --offline in push-kit.sh.
+      # sbx is pinned, not "latest", so a release that changes kit handling can't
+      # break publishing unnoticed. `sbx kit validate --offline` (v0.49.1+) needs
+      # neither a daemon nor an `sbx login`, which this job has neither of.
       - name: Install sbx
         env:
           GH_TOKEN: ${{ github.token }}
-          SBX_RELEASE: ${{ inputs.sbx_release || 'v0.46.0' }}
+          SBX_RELEASE: ${{ inputs.sbx_release || 'v0.54.1' }}
         run: |
           set -euo pipefail
           # NOTE: adjust the asset name if a future sbx release changes it.
@@ -55,6 +56,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y /tmp/sbx.deb
           sbx version
+
+      # A docker-container builder keeps the kit descriptor annotations the v3
+      # frontend attaches; the default docker driver can drop them.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
