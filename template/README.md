@@ -17,12 +17,12 @@ latest git tag) and `:latest`.
 
 ```bash
 # from the repo root
-make build                         # -> infrastructure-sandbox:v0.10.9 and :latest
+make build                         # -> infrastructure-sandbox:v0.11.0 and :latest
 make build INSTALL_CLOUDS=0        # leaner: skip the AWS/Azure/gcloud CLIs
 make build INSTALL_DOTNET=1        # also install the .NET SDK + csharp-ls for Pulumi C#
 # or directly:
 DOCKER_BUILDKIT=1 docker build -f template/Dockerfile \
-  -t infrastructure-sandbox:v0.10.9 -t infrastructure-sandbox:latest .
+  -t infrastructure-sandbox:v0.11.0 -t infrastructure-sandbox:latest .
 ```
 
 Build args (all pinned; override with `--build-arg`):
@@ -52,11 +52,11 @@ the sandbox kit at it:
 ```bash
 make load                          # build + docker save (both tags) + sbx template load
 cp -R sandbox-kit /tmp/my-sandbox-kit && cp -R kit/files /tmp/my-sandbox-kit/files
-# edit /tmp/my-sandbox-kit/spec.yaml: sandbox.image: infrastructure-sandbox:v0.10.9
+# edit /tmp/my-sandbox-kit/spec.yaml: sandbox.image: infrastructure-sandbox:v0.11.0
 sbx run /tmp/my-sandbox-kit .
 ```
 
-Or publish to a registry (pushes `:v0.10.9` and `:latest`) and set
+Or publish to a registry (pushes `:v0.11.0` and `:latest`) and set
 `sandbox.image` to that reference:
 
 ```bash
