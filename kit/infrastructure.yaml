@@ -186,10 +186,12 @@ capabilities:
               f="$HOME/.local/share/infrastructure-sandbox-kit/scripts/startup.sh"
               [ -f "$f" ] && bash "$f" || true
 
-  # Accept one context version through runtime policy, or skip both.
-  - type: com.docker.sandbox/agent-context@1
+  # One agent-context version only: sbx cannot resolve a mixin with competing
+  # versions outside its workload, so `sbx run` against an existing sandbox
+  # fails with a misleading "resolve kits" error instead of a clear one.
+  - type: com.docker.sandbox/agent-context@2
     optional: true
-    config: &agentContext
+    config:
       content: |
         # Infrastructure-as-Code workstation
 
@@ -227,7 +229,3 @@ capabilities:
           On the host, `sbx policy check network <host>` shows whether a host is allowed.
         - Never hardcode cloud or Pulumi credentials in code — the secret scanner blocks
           the write. Use ESC / stack config / environment.
-
-  - type: com.docker.sandbox/agent-context@2
-    optional: true
-    config: *agentContext

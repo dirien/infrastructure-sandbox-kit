@@ -18,7 +18,7 @@
 #
 # Requires Docker logged in to the registry (and `sbx` for the v2 kit); the CI
 # workflow handles both. Consumers run a kit by a bare OCI reference:
-#   sbx run claude --kit ghcr.io/dirien/infrastructure-kit:latest --skills=off .   # v3 mixin
+#   sbx run claude --kit ghcr.io/dirien/infrastructure-kit:latest --skills=off --name my-iac .   # v3 mixin
 #   sbx run ghcr.io/dirien/infrastructure-sandbox-kit:latest .              # v2 sandbox kit
 #
 # Reproducibility: the staged descriptor's KIT_REF is rewritten to the exact

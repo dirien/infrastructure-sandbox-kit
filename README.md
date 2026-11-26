@@ -91,18 +91,32 @@ straight from git or from a local clone. Pick whichever fits:
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
 
 # From the published kit on GHCR:
-sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off claude .
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off --name "iac-${PWD##*/}" claude .
 
 # Straight from this repo over git:
-sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.0" --skills=off claude .
+sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.0" --skills=off --name "iac-${PWD##*/}" claude .
 
 # From a local clone (the kit lives under kit/):
 git clone https://github.com/dirien/infrastructure-sandbox-kit.git
-sbx run --kit ./infrastructure-sandbox-kit/kit --skills=off claude .     # or: make run-kit
+sbx run --kit ./infrastructure-sandbox-kit/kit --skills=off --name "iac-${PWD##*/}" claude .     # or: make run-kit
+
+# Later, re-attach to the same sandbox (no kit flags):
+sbx run --name "iac-${PWD##*/}"
 ```
 
-Keep `--skills=off`: without it the APM skills don't install (see
-["What APM in the agent home means here"](#what-apm-in-the-agent-home-means-here) below).
+Keep both flags:
+
+- `--skills=off`: without it the APM skills don't install (see
+  ["What APM in the agent home means here"](#what-apm-in-the-agent-home-means-here) below).
+- `--name`: without it, `sbx run` targets the directory's default sandbox,
+  `claude-<directory>`. If you ever ran plain `claude` in that directory, that
+  sandbox already exists, and sbx 0.54.1 refuses to add a kit to it. The error
+  says the kit "resolve[s] only when it is composed with its workload" or that
+  "--kit can only be used when creating a new sandbox". A name that isn't taken
+  always creates a new sandbox. `"iac-${PWD##*/}"` (bash/zsh) names it after the
+  directory; any unused name works (letters, digits, hyphens, periods). To
+  re-create the sandbox, `sbx rm` it first. A kit can only be added when the
+  sandbox is created.
 
 The git and local forms are kit sources: sbx builds the v3 kit image in its
 kit builder sandbox (`sbx kit builder status`) before it creates the sandbox.
@@ -276,7 +290,7 @@ collection (Firecrawl, mem0, SurrealDB, Grafana, Dagger, VS Code, and others):
   ([docker/sandbox-kit-spec](https://github.com/docker/sandbox-kit-spec)): a
   `# syntax=docker/sandbox-kit:3` descriptor whose behavior is a list of typed
   capabilities (`network-policy@1`, `credential@1`, `lifecycle@1`,
-  `agent-context@1/@2`), published as an OCI image built by that BuildKit
+  `agent-context@2`), published as an OCI image built by that BuildKit
   frontend. The sandbox kit stays on the v2 grammar
   ([kit reference](https://docs.docker.com/ai/sandboxes/customize/kit-reference/)),
   which sbx still runs as a standalone agent. `sbx kit validate --offline`

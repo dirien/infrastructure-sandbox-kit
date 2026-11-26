@@ -58,7 +58,7 @@ shell) and `--env-file`:
 
 ```bash
 sbx run -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY -e AWS_REGION \
-  --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off claude .
+  --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off --name "iac-${PWD##*/}" claude .
 ```
 
 For a sandbox that already exists, write them to `/etc/sandbox-persistent.sh`,
