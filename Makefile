@@ -106,7 +106,9 @@ inspect: ## Show the v3 mixin's kit details
 
 .PHONY: run
 run: ## Run the one-flag sandbox kit (prebuilt template image, tools pre-baked)
-	sbx run $(SANDBOX_KIT) $(WORKDIR)
+	@stage="$$(mktemp -d)/infrastructure-sandbox-kit" && mkdir -p "$$stage" \
+	  && cp -R $(SANDBOX_KIT)/. "$$stage/" && cp -R $(KIT)/files "$$stage/files" \
+	  && sbx run "$$stage" $(WORKDIR)
 
 .PHONY: run-kit
 run-kit: ## Run the built-in claude agent + the v3 mixin (zero-build; installs at create time)

@@ -1,24 +1,27 @@
-# Infrastructure kit (mixin)
+# Infrastructure kit (v3 mixin)
 
-The declarative half of `infrastructure-sandbox-kit`: a `schemaVersion: "2"`,
-`kind: mixin` kit that layers the IaC toolchain onto the built-in `claude` agent
-(pinned via `requires.agent`; needs `sbx` ≥ 0.38.0, where kit-spec v2 landed).
-It carries the network allow-list, the Pulumi Cloud credential and the agent
-instructions. When the tools aren't already baked into a [template image](../template),
-it also provisions them (Pulumi, Terraform, OpenTofu, the AWS/Azure/gcloud CLIs
-and APM) at sandbox-create time. If you would rather pass one flag that bundles
-the image reference with these same declarations, use the
-[`../sandbox-kit`](../sandbox-kit) variant.
+The declarative half of `infrastructure-sandbox-kit`: a kit-spec v3
+`kind: mixin` that layers the IaC toolchain onto the built-in `claude` agent
+(`requires: [claude]`; needs `sbx` 0.51 or later, where `claude` itself is a v3
+kit, and is tested on 0.54.1). It carries the network allow list, the Pulumi
+Cloud credential, the environment defaults and the agent instructions, and it
+provisions Pulumi, Terraform, OpenTofu, kubectl, Helm, the AWS/Azure/gcloud
+CLIs, Go/Node.js language servers and APM at sandbox-create time. If you would
+rather pass one flag that bundles a prebuilt image with these same
+declarations, use the [`../sandbox-kit`](../sandbox-kit) variant.
 
 ```bash
-# On the stock claude image (zero build, installs at create time):
-sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit" claude .
+# From GHCR, git, or this directory (sbx builds git and local kits in its kit builder):
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.10.9 claude .
+sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.10.9" claude .
+sbx run --kit ./ claude .                  # or: make run-kit   (from repo root)
 
-# On the baked template (install is a fast no-op; kit just wires net/creds/MCP):
-sbx run --template infrastructure-sandbox:v0.10.9 --kit . claude .
+# Get the APM skills too (see the repo README):
+sbx run --kit ./ --skills=off claude .
 
-# Validate / inspect:
-sbx kit validate ./            # or:  make validate   (from repo root)
+# Validate / build / inspect:
+sbx kit validate ./                        # or: make validate   (needs the sbx daemon)
+make build-kit                             # docker buildx, what CI runs
 sbx kit inspect ./ --json
 ```
 
@@ -29,38 +32,53 @@ Remote sources (GHCR, git) need one-time authorization, since `sbx` allows only
 sbx settings set kit.allowedSources '["docker.io/","ghcr.io/dirien/","github.com/dirien/"]'
 ```
 
+## Files
+
+- `infrastructure.yaml`: the descriptor. Its first line,
+  `# syntax=docker/sandbox-kit:3`, selects the BuildKit frontend that builds and
+  validates the kit.
+- `infrastructure.dockerfile`: the overlay the kit adds to the workload image.
+  It carries only the runbooks, at `/opt/infrastructure-sandbox-kit/runbooks`;
+  the install hook seeds them into `~/runbooks`. The toolchain installs at
+  create time, so it follows the workload's OS and architecture.
+- `files/home/runbooks/`: the runbooks themselves, shared with the sandbox kit.
+
 ## What it declares
 
-- `requires.agent: claude`: the mixin pins the base agent it layers onto — the
-  APM setup and hooks are Claude-specific.
-- `permissions.network.allow`: the Pulumi, Terraform/OpenTofu and
-  kubectl/Helm download and registry hosts, the AWS/Azure/Google installer and apt hosts, the Ubuntu and
-  Docker apt mirrors (plain `apt-get install` works in the sandbox), GitHub
-  (which also serves the APM CLI releases), the language registries (npm, PyPI,
-  Go proxy), the MCP hosts, and a cloud control-plane starter set (AWS STS,
-  Azure ARM and login, `*.googleapis.com`). Add the rest of your cloud and
-  region endpoints here; see [`../docs/network.md`](../docs/network.md).
-- `credentials`: the Pulumi token, declared as service `pulumi` with a
+- `requires: [claude]`: the APM setup and hooks are Claude-specific, so the kit
+  only composes with a workload that provides `claude`.
+- `args`: `PULUMI_SKIP_UPDATE_CHECK`, `AWS_PAGER` and
+  `CLOUDSDK_CORE_DISABLE_PROMPTS`, exported into the container. Override with
+  `--kit-arg pulumiSkipUpdateCheck=false` and so on.
+- `network-policy@1`: the same allow list for the `install` phase (provisioning)
+  and the `runtime` phase (the agent, and `startup.sh` retrying cloud CLIs): the
+  Pulumi, Terraform/OpenTofu and kubectl/Helm download and registry hosts, the
+  AWS/Azure/Google installer and apt hosts, the workload's Debian and Docker
+  Hardened Images apt sources (`deb.debian.org`, `dhi.io`), GitHub (which also
+  serves the APM CLI releases and this kit's scripts), the language registries
+  (npm, PyPI, Go proxy), the MCP hosts, and a cloud control-plane starter set
+  (AWS STS, Azure ARM and login, `*.googleapis.com`). Add the rest of your cloud
+  and region endpoints to both lists; see [`../docs/network.md`](../docs/network.md).
+- `credential@1`: the Pulumi token, service `pulumi`, runtime phase, with a
   proxy-managed `apiKey` that injects `Authorization: token <PAT>` on
-  `api.pulumi.com`; the container sees only the proxy-managed placeholder in
-  `PULUMI_ACCESS_TOKEN`. (One block now — in v1 this took `network.serviceDomains`,
-  `network.serviceAuth`, `credentials.sources` and `environment.proxyManaged`.)
+  `api.pulumi.com`. The container sees only `PULUMI_ACCESS_TOKEN=proxy-managed`.
   Store the token with
-  `printf '%s\n' "$PULUMI_ACCESS_TOKEN" | sbx secret set -g pulumi`. Cloud creds
-  are supplied separately; see [`../docs/credentials.md`](../docs/credentials.md).
-- `environment.variables`: `PULUMI_SKIP_UPDATE_CHECK`, `AWS_PAGER`,
-  `CLOUDSDK_CORE_DISABLE_PROMPTS`.
-- `setup.install`: runs once, as the `agent` user, before Claude launches. It
-  finds the provisioning scripts (baked image first, otherwise fetched from this
-  repo at `KIT_REF` into a stable home path) and runs `provision.sh`, a no-op when
-  the tools are already provisioned.
-- `setup.startup`: runs `startup.sh` on every sandbox start (argv form — v2
-  startup commands are not shell-interpreted). Docker reseeds
-  Claude's `~/.claude/settings.json` and `~/.claude.json` at create time, so it
-  re-applies the APM guardrail hooks and MCP servers (via `apply-agent-config.sh`),
-  and retries any cloud CLI that didn't install at create time. Both are idempotent.
-- `agentInstructions`: IaC guidance surfaced to Claude (v1's `agentContext`); for
-  a mixin it lands in `kits-memory/infrastructure.md` next to the agent profile.
+  `printf '%s\n' "$PULUMI_ACCESS_TOKEN" | sbx secret set -g pulumi`. It is
+  optional: without a binding the kit runs and `pulumi` is simply logged out.
+  Cloud creds are supplied separately; see [`../docs/credentials.md`](../docs/credentials.md).
+- `lifecycle@1` `install`: runs once at create, as the `agent` user, after the
+  `claude` workload's own install hooks. It fetches the provisioning scripts
+  from this repo at `KIT_REF` into
+  `~/.local/share/infrastructure-sandbox-kit/scripts`, seeds `~/runbooks`, and
+  runs `provision.sh`. v3 hooks see only the environment variables they
+  declare, so it lists the proxy and CA variables the downloads need.
+- `lifecycle@1` `startup`: runs `startup.sh` on every start. The `claude`
+  workload rewrites `~/.claude/settings.json` and `~/.claude.json` when it
+  creates a sandbox, so this re-applies the APM guardrail hooks, status line and
+  MCP servers (via `apply-agent-config.sh`), and retries any cloud CLI that
+  didn't install at create time. Both are idempotent.
+- `agent-context@1` / `@2`: the IaC guidance surfaced to Claude. sbx picks the
+  version the workload accepts.
 
 Cloud CLI installs are per-component and non-fatal: a flaky Azure/Google apt repo
 never blocks `sbx create`. The sandbox comes up, and `startup.sh` fills in the
@@ -69,24 +87,24 @@ Terraform, OpenTofu) are still fatal.
 
 ## Pinning
 
-`setup.install` hardcodes the pins, because a kit's `environment.variables`
-aren't set yet when the install hook runs:
+The install hook hardcodes the pins:
 
-- `ISK_PULUMI_VERSION`, `ISK_TERRAFORM_VERSION`,
-  `ISK_OPENTOFU_VERSION`, `ISK_AWSCLI_VERSION`, `ISK_INSTALL_CLOUDS`,
-  `ISK_APM_SETUP_REF`, `ISK_APM_VERSION`, `ISK_INSTALL_DOTNET`: edit inline in
-  `spec.yaml`. The apm CLI is pinned and SHA256-verified like the other core
-  tools — bump `ISK_APM_VERSION` deliberately (0.27.0 silently changed dependency
-  resolution and broke provisioning until my-claude-apm-setup v0.6.1 vendored
-  the humanizer skill locally; 0.29.1 changed how Claude LSP servers are
-  deployed — see `scripts/setup-apm-home.sh`).
-- `KIT_REF`: the ref the provisioning scripts are fetched from. It defaults to
-  `main`. For reproducible zero-build runs, pin the kit URL (`…#dir=kit&ref=<tag>`)
-  and set the matching `KIT_REF` (`make pin REF=<tag>` from the repo root does that).
+- `ISK_PULUMI_VERSION`, `ISK_TERRAFORM_VERSION`, `ISK_OPENTOFU_VERSION`,
+  `ISK_KUBECTL_VERSION`, `ISK_HELM_VERSION`, `ISK_AWSCLI_VERSION`,
+  `ISK_INSTALL_CLOUDS`, `ISK_APM_SETUP_REF`, `ISK_APM_VERSION`,
+  `ISK_INSTALL_DOTNET`: edit inline in `infrastructure.yaml`. The apm CLI is
+  pinned and SHA256-verified like the other core tools; bump `ISK_APM_VERSION`
+  deliberately and together with `ISK_APM_SETUP_REF` (my-claude-apm-setup v0.7.0
+  needs apm 0.39.0 for its v4 lockfile).
+- `ISK_AZ_APT_DIST`: empty derives the Microsoft azure-cli repo dist from
+  `/etc/os-release` (Debian 13 trixie uses `bookworm`).
+- `KIT_REF`: the ref the provisioning scripts are fetched from, pinned to a
+  release tag. The published OCI artifact pins it to the exact commit SHA. For
+  a git run at another release, use `…#dir=kit&ref=<tag>` and set the matching
+  `KIT_REF` (`make pin REF=<tag>` from the repo root does that).
 
 ## Toggles
 
 - Skip the cloud CLIs for a faster create: set `ISK_INSTALL_CLOUDS="0"`.
-- Enable .NET (Pulumi C#): uncomment the `.NET` domains under
-  `permissions.network.allow` and set `ISK_INSTALL_DOTNET="1"`. On the template path,
-  use `make build INSTALL_DOTNET=1` instead.
+- Enable .NET (Pulumi C#): uncomment the `.NET` hosts in the network policy and
+  set `ISK_INSTALL_DOTNET="1"`.

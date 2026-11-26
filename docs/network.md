@@ -1,9 +1,18 @@
 # Network allow-list
 
-Docker Sandboxes egress is default-deny: only hosts in the kit's
-`permissions.network.allow` (composed with the base agent's) are reachable. This
-kit ships the hosts that its own provisioning and the core IaC flow need. You add
-the extra cloud and region endpoints and provider plugins you use.
+Docker Sandboxes egress is default-deny: only hosts the kit allows (composed
+with the base agent's rules and your local or organization policy) are
+reachable. This repo ships the hosts that its own provisioning and the core IaC
+flow need. You add the extra cloud and region endpoints and provider plugins you
+use. The list lives in two places:
+
+- the v3 mixin, `kit/infrastructure.yaml`: the `network-policy@1` capability.
+  It has an `install` list (open only while the create-time install hook runs)
+  and a `runtime` list (the agent's steady state, and the startup hook that
+  retries cloud CLIs). The kit keeps them identical through a YAML anchor
+  (`runtime.allow: *allow`), so adding a host to the `install` list adds it to
+  both.
+- the v2 sandbox kit, `sandbox-kit/spec.yaml`: `permissions.network.allow`.
 
 ## What the kit already allows
 
@@ -13,7 +22,8 @@ the extra cloud and region endpoints and provider plugins you use.
 | Terraform / OpenTofu | `releases.hashicorp.com`, `registry.terraform.io`, `registry.opentofu.org`, `get.opentofu.org` | CLI downloads + provider registries |
 | Kubernetes | `dl.k8s.io`, `cdn.dl.k8s.io`, `get.helm.sh` | kubectl binary (`dl.k8s.io` redirects to its CDN) + Helm tarballs; your cluster API endpoints and chart registries are yours to add |
 | Cloud CLIs | `awscli.amazonaws.com`, `packages.microsoft.com`, `packages.cloud.google.com`, `dl.google.com` | AWS CLI zip + Azure/gcloud GPG-signed apt repos |
-| OS packages | `archive.ubuntu.com`, `security.ubuntu.com`, `ports.ubuntu.com`, `download.docker.com` | plain `apt-get update`/`install` in the sandbox (base Ubuntu sources + the pre-added Docker repo; `ports` serves arm64) |
+| OS packages (mixin) | `deb.debian.org`, `dhi.io` | the built-in `claude` agent's Debian 13 and Docker Hardened Images apt sources; the kit installs Go and Node.js from `dhi.io` |
+| OS packages (sandbox kit) | `archive.ubuntu.com`, `security.ubuntu.com`, `ports.ubuntu.com`, `download.docker.com` | plain `apt-get update`/`install` in the Ubuntu template (base sources + the pre-added Docker repo; `ports` serves arm64) |
 | Cloud control-plane (starters) | `sts.amazonaws.com`, `management.azure.com`, `login.microsoftonline.com`, `graph.microsoft.com`, `accounts.google.com`, `oauth2.googleapis.com`, `*.googleapis.com` | basic identity, ARM, and `gcloud auth`; extend per provider and region |
 | GitHub | `github.com`, `api.github.com`, `codeload.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` | Pulumi/OpenTofu binaries, provider plugins, `gh`, the APM CLI release tarballs, the APM skill repos |
 | Registries | `registry.npmjs.org`, `pypi.org`, `files.pythonhosted.org`, `proxy.golang.org`, `sum.golang.org`, `storage.googleapis.com` | your IaC program's deps + provisioning |
@@ -40,10 +50,13 @@ the root and its subdomains. A kit's `permissions.network.allow` is the kit's ow
 egress list; it is distinct from (and composed with) the organization- and
 local-level governance policy rules that use this same syntax.
 
-One kit-spec v2 caveat: in the kit's list only exact hosts, `host:port` and
-single-label `*.host` patterns are enforced. `**.host` and CIDR entries parse
-but don't open egress (yet), so express multi-level needs as explicit hosts or
-single-label wildcards — or put them in governance policy, where they do work.
+Kit lists are narrower than governance policy. The v3 `network-policy@1`
+portable patterns are exact hosts, `host:port`, single-label `*.host`, and a
+bare `*`/`**` for everything. In the v2 sandbox kit's list only exact hosts,
+`host:port` and single-label `*.host` patterns are enforced; `**.host` and CIDR
+entries parse but don't open egress. Express multi-level needs as explicit
+hosts or single-label wildcards, or put them in governance policy, where they
+do work.
 
 Middle-position wildcards like `bedrock-runtime.*.amazonaws.com` aren't part of
 the format. For AWS regional endpoints in the kit's list, name the regional
@@ -54,8 +67,8 @@ hosts you use (`**.amazonaws.com` only takes effect in governance policy).
 The basic identity and control-plane hosts above are already allowed, so
 `aws sts get-caller-identity`, `az login` and `gcloud auth` work without extra
 setup. For real work you still need the regional service and object-storage
-endpoints your stacks call. Add them to `permissions.network.allow` in
-`kit/spec.yaml` and recreate the sandbox.
+endpoints your stacks call. Add them to the kit's list (see the top of this
+page) and recreate the sandbox.
 
 ```yaml
 # AWS (SigV4; also pass AWS_* creds, see docs/credentials.md)
@@ -95,9 +108,12 @@ Run once, then read the proxy log. Every blocked row is a host to add:
 
 ```bash
 sbx policy log <sandbox-name>          # HOST column lists blocked (and allowed) requests
+sbx policy check network --sandbox <sandbox-name> api.example.com   # would this host be allowed?
 ```
 
-Add the host to `permissions.network.allow`, recreate the sandbox, and repeat
+`sbx policy check network -v` also names the rule that decided, which tells a
+kit rule apart from your local policy. Add the host to the kit's list, recreate
+the sandbox, and repeat
 until the blocked list is empty. Provider plugins download on first use from
 GitHub or `get.pulumi.com` (already allowed); a plugin that pulls from a provider
 CDN shows up here too.
@@ -105,9 +121,10 @@ CDN shows up here too.
 ## Package-manager gotcha
 
 `apt-get update` normally refreshes every configured source, not just the one you
-asked for, so one unreachable source fails the whole update under deny-all. The
-kit allows the base image's sources (`archive.ubuntu.com`, `security.ubuntu.com`,
-`ports.ubuntu.com`, and the pre-added `download.docker.com`), so a plain
+asked for, so one unreachable source fails the whole update under deny-all.
+Each kit allows its base image's sources (Debian and `dhi.io` for the mixin;
+`archive.ubuntu.com`, `security.ubuntu.com`, `ports.ubuntu.com` and the
+pre-added `download.docker.com` for the sandbox kit), so a plain
 `apt-get update && apt-get install` works in the sandbox out of the box.
 
 The kit's own Azure and gcloud installs still refresh only their own list
