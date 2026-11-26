@@ -16,7 +16,7 @@ description: >-
 author: "Engin Diri"
 sourceUrl: https://github.com/dirien/infrastructure-sandbox-kit
 licenses: [MIT]
-version: "0.11.0"
+version: "0.11.1"
 
 # APM lands in ~/.claude and the hooks target Claude Code, so the kit only
 # composes with a workload that carries Claude.
@@ -157,7 +157,7 @@ capabilities:
             # Immutable ref the provisioning scripts are fetched from (reproducible).
             # A released tag/SHA, NOT a moving branch. scripts/push-kit.sh rewrites
             # it to the exact commit SHA when publishing to OCI.
-            KIT_REF="v0.11.0"
+            KIT_REF="v0.11.1"
             DIR="$HOME/.local/share/infrastructure-sandbox-kit/scripts"
             if [ ! -f "$DIR/provision.sh" ]; then
               mkdir -p "$DIR"

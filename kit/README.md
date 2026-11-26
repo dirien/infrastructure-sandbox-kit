@@ -17,8 +17,8 @@ declarations, use the [`../sandbox-kit`](../sandbox-kit) variant.
 # --name picks a sandbox that doesn't exist yet; without it sbx targets the
 # directory's default claude-<dir> sandbox and refuses the kit if that one
 # already exists (see the repo README).
-sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off --name "iac-${PWD##*/}" claude .
-sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.0" --skills=off --name "iac-${PWD##*/}" claude .
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.1 --skills=off --name "iac-${PWD##*/}" claude .
+sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.1" --skills=off --name "iac-${PWD##*/}" claude .
 sbx run --kit ./ --skills=off --name "iac-${PWD##*/}" claude .     # or: make run-kit   (from repo root)
 sbx run --name "iac-${PWD##*/}"           # re-attach later, without kit flags
 
