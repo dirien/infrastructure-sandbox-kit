@@ -26,8 +26,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 
 APM_REPO="${ISK_APM_SETUP_REPO:-dirien/my-claude-apm-setup}"
-APM_REF="${ISK_APM_SETUP_REF:-v0.6.12}"
-APM_VERSION="${ISK_APM_VERSION:-0.35.0}"
+APM_REF="${ISK_APM_SETUP_REF:-v0.7.0}"
+APM_VERSION="${ISK_APM_VERSION:-0.39.0}"
 SETUP_DIR="${ISK_APM_SETUP_DIR:-$HOME/.claude-apm-setup}"
 CLAUDE_HOME="$HOME/.claude"
 
@@ -37,6 +37,11 @@ CLAUDE_HOME="$HOME/.claude"
 # setup vendored the humanizer skill in v0.6.1; 0.29.1/0.30.0 changed how Claude
 # LSP servers are deployed — see step 4). Pin + verify like the other core tools
 # and bump ISK_APM_VERSION deliberately.
+# The default version's per-arch SHA256s are pinned here; an overridden
+# ISK_APM_VERSION falls back to the .sha256 file published with that release.
+apm_pinned_version="0.39.0"
+apm_sha_x86_64="3a84e9c14ab594c22e97f6ccc9be41bed14199fe4f4aa24a206d23b65919592d"
+apm_sha_arm64="01ba7e98b71469225298557dd06fb4ea9e8de61c739182d09b3e26c788c1d975"
 if have apm && apm --version 2>/dev/null | grep -qF " ${APM_VERSION} "; then
   log "apm ${APM_VERSION} already installed"
 else
@@ -45,8 +50,16 @@ else
   apm_tmp="$(mktemp -d)"
   log "installing APM CLI ${APM_VERSION} (${apm_asset})"
   fetch "$apm_url" "$apm_tmp/$apm_asset"
-  fetch "$apm_url.sha256" "$apm_tmp/$apm_asset.sha256"
-  verify_from_sums "$apm_tmp/$apm_asset" "$apm_asset" "$apm_tmp/$apm_asset.sha256"
+  if [ "$APM_VERSION" = "$apm_pinned_version" ]; then
+    case "$(apm_arch)" in
+      x86_64) verify_sha256 "$apm_tmp/$apm_asset" "$apm_sha_x86_64" ;;
+      arm64)  verify_sha256 "$apm_tmp/$apm_asset" "$apm_sha_arm64" ;;
+      *)      die "no pinned apm checksum for arch '$(apm_arch)'" ;;
+    esac
+  else
+    fetch "$apm_url.sha256" "$apm_tmp/$apm_asset.sha256"
+    verify_from_sums "$apm_tmp/$apm_asset" "$apm_asset" "$apm_tmp/$apm_asset.sha256"
+  fi
   as_root rm -rf /usr/local/lib/apm-cli
   as_root mkdir -p /usr/local/lib/apm-cli
   as_root tar -xzf "$apm_tmp/$apm_asset" -C /usr/local/lib/apm-cli --strip-components=1
@@ -66,6 +79,10 @@ else
          && git -C "$SETUP_DIR" checkout -q FETCH_HEAD 2>/dev/null; }; then
     warn "could not update to ${APM_REF}; using existing checkout"
   fi
+  # Drop the previous install's gitignored outputs (apm_modules/, deployed
+  # .claude/ files). Left in place, `apm install --frozen` on the new ref fails:
+  # the deployed files no longer match the hashes in the new apm.lock.yaml.
+  git -C "$SETUP_DIR" clean -fdXq
 fi
 
 # --- 3. Materialize with APM (reproducible from the lockfile) --------------

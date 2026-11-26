@@ -225,8 +225,8 @@ infrastructure-sandbox-kit/
 | Helm | `4.3.1` | same |
 | AWS CLI v2 | `2.39.3` | `scripts/install-clouds.sh` (+ SHA256s), `kit/spec.yaml`, `Makefile` |
 | Azure CLI / gcloud | latest (GPG apt) | vendor repos; az dist pinned via `AZ_APT_DIST` (`resolute`) |
-| my-claude-apm-setup | `v0.6.12` | `ISK_APM_SETUP_REF` |
-| APM CLI | `0.35.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
+| my-claude-apm-setup | `v0.7.0` | `ISK_APM_SETUP_REF` |
+| APM CLI | `0.39.0` | `ISK_APM_VERSION` (pinned + SHA256; bump deliberately) |
 | sbx (publish CI only) | `v0.46.0` | `SBX_RELEASE` in `.github/workflows/publish-kit.yaml` |
 | Base image | `docker/sandbox-templates:claude-code-docker` | `BASE` build arg |
 

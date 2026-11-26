@@ -29,8 +29,8 @@ HELM_VERSION       ?= 4.3.1
 AWSCLI_VERSION     ?= 2.39.3
 AZ_APT_DIST        ?= resolute
 INSTALL_CLOUDS     ?= 1
-APM_SETUP_REF      ?= v0.6.12
-APM_VERSION        ?= 0.35.0
+APM_SETUP_REF      ?= v0.7.0
+APM_VERSION        ?= 0.39.0
 INSTALL_DOTNET     ?= 0
 DOTNET_CHANNEL     ?= 8.0
 
