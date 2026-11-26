@@ -71,7 +71,7 @@ use the sandbox kit, which runs the same template image.
 
 ```bash
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
-sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.10.9 infrastructure-sandbox .
+sbx run --kit ghcr.io/dirien/infrastructure-sandbox-kit:v0.11.0 infrastructure-sandbox .
 ```
 
 The kit names the template image and carries every rule. A sandbox kit defines
@@ -91,15 +91,18 @@ straight from git or from a local clone. Pick whichever fits:
 sbx secret set -g pulumi           # one-time: bind your Pulumi token (docs/credentials.md)
 
 # From the published kit on GHCR:
-sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.10.9 claude .
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off claude .
 
 # Straight from this repo over git:
-sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.10.9" claude .
+sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.0" --skills=off claude .
 
 # From a local clone (the kit lives under kit/):
 git clone https://github.com/dirien/infrastructure-sandbox-kit.git
-sbx run --kit ./infrastructure-sandbox-kit/kit claude .     # or: make run-kit
+sbx run --kit ./infrastructure-sandbox-kit/kit --skills=off claude .     # or: make run-kit
 ```
+
+Keep `--skills=off`: without it the APM skills don't install (see
+["What APM in the agent home means here"](#what-apm-in-the-agent-home-means-here) below).
 
 The git and local forms are kit sources: sbx builds the v3 kit image in its
 kit builder sandbox (`sbx kit builder status`) before it creates the sandbox.
@@ -117,7 +120,7 @@ The kit installs the toolchain at create time, which takes a few minutes. Add
 
 Reproducibility: the kit fetches its provisioning scripts from `KIT_REF` in
 `kit/infrastructure.yaml`, which is pinned to an immutable release tag
-(`v0.10.9`), not a moving branch — so the scripts don't change under you even if
+(`v0.11.0`), not a moving branch — so the scripts don't change under you even if
 you fetch the kit from `main`. The published OCI artifact goes further:
 `scripts/push-kit.sh` rewrites `KIT_REF` to the exact commit SHA. To pin a git
 run to a different release, use `…&ref=<tag>`; `make pin REF=<tag>` sets
@@ -174,11 +177,8 @@ and the `apm-lsp` plugin with a warning. The toolchain, agents, rules, hooks and
 MCP still install, and the managed `CLAUDE.md` block records that the skills are
 missing. Where sbx instead links store skills into a writable directory, the kit
 copies its skills beside them and keeps the store's copy of any name both carry.
-Create the sandbox with `--skills=off` so the kit gets its own skills directory:
-
-```bash
-sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.10.9 --skills=off claude .
-```
+That is why every mixin command in this README passes `--skills=off`: the kit
+then gets its own skills directory.
 
 `--skills=readwrite` also works, but the kit then writes its skills into the
 shared store, where they outlive the sandbox and appear in unrelated ones.

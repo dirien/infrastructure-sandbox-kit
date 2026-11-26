@@ -11,13 +11,12 @@ rather pass one flag that bundles a prebuilt image with these same
 declarations, use the [`../sandbox-kit`](../sandbox-kit) variant.
 
 ```bash
-# From GHCR, git, or this directory (sbx builds git and local kits in its kit builder):
-sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.10.9 claude .
-sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.10.9" claude .
-sbx run --kit ./ claude .                  # or: make run-kit   (from repo root)
-
-# Get the APM skills too (see the repo README):
-sbx run --kit ./ --skills=off claude .
+# From GHCR, git, or this directory (sbx builds git and local kits in its kit builder).
+# --skills=off gives the kit its own skills directory; without it the APM skills
+# don't install, because sbx mounts its shared skills store read-only (see the repo README).
+sbx run --kit ghcr.io/dirien/infrastructure-kit:v0.11.0 --skills=off claude .
+sbx run --kit "git+https://github.com/dirien/infrastructure-sandbox-kit.git#dir=kit&ref=v0.11.0" --skills=off claude .
+sbx run --kit ./ --skills=off claude .     # or: make run-kit   (from repo root)
 
 # Validate / build / inspect:
 sbx kit validate ./                        # or: make validate   (needs the sbx daemon)

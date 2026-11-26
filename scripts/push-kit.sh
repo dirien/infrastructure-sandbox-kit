@@ -2,7 +2,7 @@
 # push-kit.sh — publish one of this repo's kits to an OCI registry.
 #
 #   ./scripts/push-kit.sh                    # push kit/ as :latest to ghcr.io/dirien/infrastructure-kit
-#   TAG=v0.10.9 ./scripts/push-kit.sh         # push a specific tag
+#   TAG=v0.11.0 ./scripts/push-kit.sh         # push a specific tag
 #   KIT_DIR=sandbox-kit KIT_NAME=infrastructure-sandbox-kit ./scripts/push-kit.sh
 #   REGISTRY=ghcr.io/you ./scripts/push-kit.sh
 #
@@ -18,7 +18,7 @@
 #
 # Requires Docker logged in to the registry (and `sbx` for the v2 kit); the CI
 # workflow handles both. Consumers run a kit by a bare OCI reference:
-#   sbx run claude --kit ghcr.io/dirien/infrastructure-kit:latest .        # v3 mixin
+#   sbx run claude --kit ghcr.io/dirien/infrastructure-kit:latest --skills=off .   # v3 mixin
 #   sbx run ghcr.io/dirien/infrastructure-sandbox-kit:latest .              # v2 sandbox kit
 #
 # Reproducibility: the staged descriptor's KIT_REF is rewritten to the exact
